@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.proyectolince.ui.screens.ServiciosScreen
+import com.example.proyectolince.screens.NotificacionesScreen
 import com.example.proyectolince.ui.theme.ProyectoLinceTheme
 
 class MainActivity : ComponentActivity() {
@@ -12,7 +13,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ProyectoLinceTheme {
                 // Se llama directamente a la pantalla Screen
-                ServiciosScreen()
+                NotificacionesScreen()
             }
         }
     }
