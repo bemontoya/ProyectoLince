@@ -1,4 +1,4 @@
-package com.example.proyectolince.screens
+package com.example.proyectolince.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectolince.ui.theme.*
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,13 +100,13 @@ fun NotificacionesScreen() {
             }
         },
         containerColor = FondoPantalla
-    ) { paddingValores ->
+    ) { paddingValues ->
 
         // contenido desplazable (LazyColumn)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValores)
+                .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {

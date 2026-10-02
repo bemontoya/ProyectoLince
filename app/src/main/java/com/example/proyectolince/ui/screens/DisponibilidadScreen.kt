@@ -96,14 +96,14 @@ fun DisponibilidadScreen() {
             }
         },
         containerColor = FondoPantalla
-    ) { paddingValores ->
+    ) { paddingValues ->
 
         var isDisponible by remember { mutableStateOf(true) }
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValores)
+                .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

@@ -75,13 +75,13 @@ fun ServiciosScreen() {
             }
         },
         containerColor = FondoPantalla
-    ) { paddingValores ->
+    ) { paddingValues ->
 
         // LazyColumn habilita el SCROLL dinámico cuando el contenido sobrepasa la pantalla
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValores)
+                .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
