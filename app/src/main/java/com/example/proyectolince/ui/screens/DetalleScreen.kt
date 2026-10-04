@@ -23,10 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectolince.ui.theme.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleScreen(){
+
+    var checkInRealizado by remember { mutableStateOf(false) }
+
     Scaffold(
         // barra superior
         topBar = {
@@ -162,7 +169,7 @@ fun DetalleScreen(){
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    "CONFIRMADDO",
+                                    "CONFIRMADO",
                                     fontSize = 11.sp,
                                     color = VerdeConfirmado,
                                     fontWeight = FontWeight.Bold
@@ -419,9 +426,206 @@ fun DetalleScreen(){
                                 color = TextoOscuro
 
                             )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Surface(
+                                color = VerdeFondoBadge,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ){
+                                Row(
+                                    modifier = Modifier.padding(vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Phone,
+                                        contentDescription = null,
+                                        tint = VerdeConfirmado,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        "Llamar",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = VerdeConfirmado
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // card de vehiculo
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ){
+                        Column(modifier = Modifier.padding(14.dp)){
+                            Row(verticalAlignment = Alignment.CenterVertically){
+                                Icon(
+                                    Icons.Default.DirectionsCar,
+                                    contentDescription = null,
+                                    tint = AzulPrincipal,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    "VEHICULO",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextoGris
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Text(
+                                "Mercedes Sprinter",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextoOscuro
+                            )
+                            Text(
+                                "Capacidad 12 + 1",
+                                fontSize = 11.sp,
+                                color = TextoGris
+                            )
+
+                            Spacer(modifier = Modifier.height(18.dp))
+
+                            Text(
+                                "PATENTE ASIGNADA",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextoGris
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            //patente simulada
+                            Box(
+                                modifier = Modifier
+                                    .border(1.dp, TextoOscuro, RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ){
+                                Row(verticalAlignment = Alignment.CenterVertically){
+                                    Box(
+                                        modifier = Modifier
+                                            .size(6.dp)
+                                            .background(AzulPrincipal, CircleShape)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "KJ • 8821",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextoOscuro
+                                    )
+                                }
+                            }
+
                         }
                     }
                 }
+            }
+
+            // boton de navegacion
+            item{
+                OutlinedButton(
+                    onClick = { },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = AzulSecundario,
+                        contentColor = AzulPrincipal
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ){
+                    Icon(
+                        Icons.Default.Navigation,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Abrir en Waze / Google Maps",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            //boton accionable principal
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    //boton que cambia de estado al presionar
+                    Button(
+                        onClick = { checkInRealizado = true },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if(checkInRealizado) VerdeConfirmado else AzulPrincipal
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    ){
+                        Icon(
+                            imageVector = if (checkInRealizado) Icons.Default.Verified else Icons.Default.HowToReg,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (checkInRealizado) "CHECK-IN COMPLETADO" else "REGISTRAR CHECK-IN",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+
+                    //mensaje de confirmacion verde (solo se muestra al hacer click)
+                    if (checkInRealizado){
+                        Surface(
+                            color = VerdeConfirmado,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ){
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        "Check-in completado exitosamente",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        "Pasajeros a bordo y servicio en marcha",
+                                        fontSize = 11.sp,
+                                        color = Color.White.copy(alpha = 0.9f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                }
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
