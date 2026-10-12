@@ -9,13 +9,14 @@ import com.example.proyectolince.ui.theme.ProyectoLinceTheme
 import com.example.proyectolince.ui.screens.DisponibilidadScreen
 import com.example.proyectolince.ui.screens.DetalleScreen
 import com.example.proyectolince.ui.screens.PerfilScreen
+import com.example.proyectolince.ui.screens.LoginScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ProyectoLinceTheme {
-                PerfilScreen()
+                LoginScreen()
             }
         }
     }
