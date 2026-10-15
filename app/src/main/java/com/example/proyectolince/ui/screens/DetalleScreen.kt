@@ -43,7 +43,7 @@ fun DetalleScreen(){
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier.fillMaxWidth().padding(start = 12.dp)
                     ) {
-                        Text("PROYECTO LINCE", fontSize = 10.sp, color = TextoGris, fontWeight = FontWeight.Bold)
+                        Text("Southbound Field", fontSize = 10.sp, color = TextoGris, fontWeight = FontWeight.Bold)
                         Text("Detalle", fontSize = 20.sp, color = TextoOscuro, fontWeight = FontWeight.Bold)
                     }
                 },

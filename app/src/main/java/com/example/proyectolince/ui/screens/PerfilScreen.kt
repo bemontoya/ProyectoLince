@@ -41,7 +41,7 @@ fun PerfilScreen() {
                             .padding(start = 12.dp)
                     ) {
                         Text(
-                            text = "PROYECTO LINCE",
+                            text = "Southbound Field",
                             fontSize = 10.sp,
                             color = TextoGris,
                             fontWeight = FontWeight.Bold

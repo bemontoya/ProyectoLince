@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ProyectoLinceTheme {
-                LoginScreen()
+                DisponibilidadScreen()
             }
         }
     }

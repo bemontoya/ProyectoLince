@@ -1,7 +1,10 @@
 package com.example.proyectolince.ui.screens
 
+import android.graphics.Paint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -25,6 +29,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// Reemplaza com.example.proyectolince con el paquete de tu proyecto si difiere
+import com.example.proyectolince.R
 //se importa toda la paleta de color con colores estandar definidos
 import com.example.proyectolince.ui.theme.*
 
@@ -33,10 +39,10 @@ import com.example.proyectolince.ui.theme.*
 fun LoginScreen() {
 
     //estados de la pantalla (variables cambian cuando el usuario interactúa)
-    var rolSeleccionado by remember { mutableStateOf(0)} // 0: driver, 1: guia, 2: coordinador
-    var usuarioText by remember { mutableStateOf("matias.jeldres@southbound.cl")}
-    var passwordText by remember { mutableStateOf("123456789012")}
-    var passwordVisible by remember { mutableStateOf(false)}//controla si la clave se ve o se ven puntos
+    var rolSeleccionado by remember { mutableStateOf(0) } // 0: driver, 1: guia, 2: coordinador
+    var usuarioText by remember { mutableStateOf("matias.jeldres@southbound.cl") }
+    var passwordText by remember { mutableStateOf("123456789012") }
+    var passwordVisible by remember { mutableStateOf(false) } //controla si la clave se ve o se ven puntos
 
     // Usamos Scaffold nativo para garantizar que tome los márgenes reales del teléfono
     Scaffold(
@@ -51,36 +57,26 @@ fun LoginScreen() {
             verticalArrangement = Arrangement.SpaceBetween // Distribuye el espacio de forma proporcional a todo el alto
         ) {
 
-            // =====================================================================================
-            // BLOQUE SUPERIOR CON LOGO Y TÍTULO (Ocupa la parte superior con un peso flexible)
-            // =====================================================================================
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp)
             ) {
-                //cuadro para imagen del logo
-                Surface(
-                    color = Color(0xFFE2E8F0),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(72.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "img",
-                            fontSize = 14.sp,
-                            color = TextoGris,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
+                // Contenedor e imagen del logo oficial
+                Image(
+                    painter = painterResource(id = R.drawable.logo_lince),
+                    contentDescription = "Logo Southbound Field",
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 //titulo principal
                 Text(
-                    text = "Proyecto Lince",
+                    text = "Southbound Field",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoOscuro
@@ -105,9 +101,7 @@ fun LoginScreen() {
                 }
             }
 
-            // =====================================================================================
-            // FORMULARIO PRINCIPAL DE LOGIN (Ubicado al centro exacto de la pantalla)
-            // =====================================================================================
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,22 +123,31 @@ fun LoginScreen() {
                         Button(
                             onClick = { rolSeleccionado = 0 },
                             shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues (horizontal = 4.dp, vertical = 0.dp ),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (rolSeleccionado == 0) Color.White else Color.Transparent,
                                 contentColor = if (rolSeleccionado == 0) TextoOscuro else TextoGris
                             ),
                             elevation = if (rolSeleccionado == 0) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
                         ) {
-                            Icon(Icons.Default.DirectionsCar, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Driver", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ){
+                                Icon(Icons.Default.DirectionsCar, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Driver", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
 
                         //pestaña de guia
                         Button(
                             onClick = { rolSeleccionado = 1 },
                             shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (rolSeleccionado == 1) Color.White else Color.Transparent,
                                 contentColor = if (rolSeleccionado == 1) TextoOscuro else TextoGris
@@ -152,15 +155,21 @@ fun LoginScreen() {
                             elevation = if (rolSeleccionado == 1) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
                             modifier = Modifier.weight(1f)
                         ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+
+                            ){
                             Icon(Icons.Default.Explore, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Guía", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Guía", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                         }
 
                         //pestaña coordinador
                         Button(
                             onClick = { rolSeleccionado = 2 },
                             shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (rolSeleccionado == 2) Color.White else Color.Transparent,
                                 contentColor = if (rolSeleccionado == 2) TextoOscuro else TextoGris
@@ -168,9 +177,14 @@ fun LoginScreen() {
                             elevation = if (rolSeleccionado == 2) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
                             modifier = Modifier.weight(1f)
                         ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            )
+                            {
                             Icon(Icons.Default.Hub, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Coordinador", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("Coordinador", fontSize = 11.sp, fontWeight = FontWeight.Bold)}
                         }
                     }
                 }
@@ -178,7 +192,7 @@ fun LoginScreen() {
                 //campo correo
                 Column {
                     Text(
-                        text = "USUARIO / CORREO",
+                        text = "CORREO",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextoGris,
