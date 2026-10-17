@@ -2,6 +2,7 @@ package com.example.proyectolince.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -23,7 +24,12 @@ import com.example.proyectolince.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificacionesScreen() {
+fun NotificacionesScreen(
+    onNavigateToServicios: () -> Unit = {},
+    onNavigateToDetalle: () -> Unit = {},
+    onNavigateToDisponibilidad: () -> Unit = {},
+    onNavigateToPerfil: () -> Unit = {}
+) {
     Scaffold(
         //  barra superior
         topBar = {
@@ -50,7 +56,8 @@ fun NotificacionesScreen() {
                             .padding(end = 12.dp)
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(AzulPrincipal),
+                            .background(AzulPrincipal)
+                            .clickable{onNavigateToPerfil()},
                         contentAlignment = Alignment.Center
                     ) {
                         Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -64,19 +71,19 @@ fun NotificacionesScreen() {
             NavigationBar(containerColor = Color.White) {
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToServicios() },
                     icon = { Icon(Icons.Default.AltRoute, contentDescription = null) },
                     label = { Text("Servicios", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDetalle()},
                     icon = { Icon(Icons.Default.DirectionsCar, contentDescription = null) },
                     label = { Text("Detalle", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDisponibilidad()},
                     icon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                     label = { Text("Disponibilidad", fontSize = 11.sp) }
                 )
@@ -93,7 +100,7 @@ fun NotificacionesScreen() {
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToPerfil() },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) }
                 )
@@ -250,7 +257,7 @@ fun NotificacionesScreen() {
 
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(
-                            onClick = { },
+                            onClick = { onNavigateToDetalle()},
                             colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.align(Alignment.End)
@@ -396,7 +403,7 @@ fun NotificacionesScreen() {
                         Spacer(modifier = Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
-                                onClick = { },
+                                onClick = { onNavigateToDetalle()},
                                 colors = ButtonDefaults.buttonColors(containerColor = AzulSecundario, contentColor = TextoOscuro),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.weight(1f)

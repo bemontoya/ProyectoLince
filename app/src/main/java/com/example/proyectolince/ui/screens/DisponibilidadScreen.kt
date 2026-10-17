@@ -31,7 +31,12 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DisponibilidadScreen() {
+fun DisponibilidadScreen(
+    onNavigateToServicios: () -> Unit = {},
+    onNavigateToDetalle: () -> Unit = {},
+    onNavigateToAvisos: () -> Unit = {},
+    onNavigateToPerfil: () -> Unit = {}
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -45,7 +50,7 @@ fun DisponibilidadScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onNavigateToAvisos() }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
                     }
                     Box(
@@ -53,7 +58,8 @@ fun DisponibilidadScreen() {
                             .padding(end = 16.dp)
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(AzulPrincipal),
+                            .background(AzulPrincipal)
+                            .clickable{onNavigateToPerfil()},
                         contentAlignment = Alignment.Center
                     ) {
                         Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -66,13 +72,13 @@ fun DisponibilidadScreen() {
             NavigationBar(containerColor = Color.White) {
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToServicios() },
                     icon = { Icon(Icons.Default.AltRoute, contentDescription = null) },
                     label = { Text("Servicios", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDetalle()},
                     icon = { Icon(Icons.Default.DirectionsCar, contentDescription = null) },
                     label = { Text("Detalle", fontSize = 11.sp) }
                 )
@@ -89,7 +95,16 @@ fun DisponibilidadScreen() {
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = {onNavigateToAvisos()},
+                    icon = {Icon(Icons.Default.NotificationsNone, contentDescription = null)},
+                    label = {Text("Avisos", fontSize = 11.sp)}
+                )
+
+
+
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { onNavigateToPerfil},
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) }
                 )
@@ -220,7 +235,7 @@ fun DisponibilidadScreen() {
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text("Domingo 19", fontWeight = FontWeight.Bold, color = TextoOscuro)
+                            Text("Domingo 18", fontWeight = FontWeight.Bold, color = TextoOscuro)
                             Surface(color = AzulSecundario, shape = RoundedCornerShape(6.dp)) {
                                 Text("Día completo", color = AzulPrincipal, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                             }
@@ -283,10 +298,10 @@ fun CalendarCard() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Construcción matemática de la grilla
+            // construcción matemática de la grilla
             val daysInMonth = currentMonth.lengthOfMonth()
             val firstDayOfMonth = currentMonth.atDay(1)
-            val daysBefore = firstDayOfMonth.dayOfWeek.value - 1
+            val daysBefore = (firstDayOfMonth.dayOfWeek.value - 1) % 7
             val daysInPrevMonth = currentMonth.minusMonths(1).lengthOfMonth()
 
             var currentDay = 1
@@ -302,7 +317,7 @@ fun CalendarCard() {
                                     CalendarDayItem(dayNum.toString(), isCurrentMonth = false, tipoIndicador = 0, weight = 1f)
                                 }
                                 currentDay <= daysInMonth -> {
-                                    // 1: Asignado (azul), 2: Disponible (gris), 3: Bloqueado (X)
+
                                     val indicador = when (currentDay) {
                                         2, 4, 7, 11, 13, 14, 15, 17, 21, 23, 26, 28, 31 -> 1
                                         19 -> 3

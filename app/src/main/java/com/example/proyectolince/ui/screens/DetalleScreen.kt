@@ -3,6 +3,7 @@ package com.example.proyectolince.ui.screens
 import android.view.RoundedCorner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,7 +31,13 @@ import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetalleScreen(){
+fun DetalleScreen(
+    onVolver: () -> Unit = {},
+    onNavigateToServicios: () -> Unit = {},
+    onNavigateToDisponibilidad: () -> Unit = {},
+    onNavigateToAvisos: () -> Unit = {},
+    onNavigateToPerfil: () -> Unit = {}
+){
 
     var checkInRealizado by remember { mutableStateOf(false) }
 
@@ -58,7 +65,9 @@ fun DetalleScreen(){
                             .padding(end = 12.dp)
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(AzulPrincipal),
+                            .background(AzulPrincipal)
+                            .clickable{onNavigateToPerfil()},
+
                         contentAlignment = Alignment.Center
                     ) {
                         Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -72,7 +81,7 @@ fun DetalleScreen(){
             NavigationBar(containerColor = Color.White){
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToServicios()},
                     icon = { Icon(Icons.Default.AltRoute, contentDescription = null)},
                     label = { Text("Servicios", fontSize = 11.sp)}
                 )
@@ -89,19 +98,19 @@ fun DetalleScreen(){
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDisponibilidad()},
                     icon = { Icon(Icons.Default.CalendarToday, contentDescription = null)},
                     label = { Text("Disponibilidad", fontSize = 11.sp)}
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToAvisos},
                     icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null)},
                     label = { Text("Avisos", fontSize = 11.sp)}
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToPerfil},
                     icon = { Icon(Icons.Default.PersonOutline, contentDescription = null)},
                     label = { Text("Perfil", fontSize = 11.sp)}
                 )
@@ -127,7 +136,7 @@ fun DetalleScreen(){
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     TextButton(
-                        onClick = { },
+                        onClick = { onVolver() },
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Icon(

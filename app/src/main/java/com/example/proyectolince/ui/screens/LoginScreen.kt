@@ -36,7 +36,9 @@ import com.example.proyectolince.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit = {}
+) {
 
     //estados de la pantalla (variables cambian cuando el usuario interactúa)
     var rolSeleccionado by remember { mutableStateOf(0) } // 0: driver, 1: guia, 2: coordinador
@@ -274,8 +276,11 @@ fun LoginScreen() {
 
                 //boton de iniciar sesion
                 Button(
-                    onClick = { },
+                    onClick = {
+                        println("DEBUG_LOG: Botón de Inciar Sesión presionado")
+                        onLoginSuccess() },
                     shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                     modifier = Modifier
                         .fillMaxWidth()

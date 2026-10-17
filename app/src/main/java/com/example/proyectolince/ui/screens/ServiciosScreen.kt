@@ -18,7 +18,12 @@ import com.example.proyectolince.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ServiciosScreen() {
+fun ServiciosScreen(
+    onNavigateToDetalle: () -> Unit = {},
+    onNavigateToDisponibilidad: () -> Unit = {},
+    onNavigateToAvisos: () -> Unit = {},
+    onNavigateToPerfil: () -> Unit = {}
+) {
     Scaffold(
         // Barra superior con el logo y notificaciones
         topBar = {
@@ -33,7 +38,7 @@ fun ServiciosScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onNavigateToAvisos }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
                     }
                 },
@@ -56,19 +61,19 @@ fun ServiciosScreen() {
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDetalle()},
                     icon = { Icon(Icons.Default.DirectionsCar, contentDescription = null) },
                     label = { Text("Detalle", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDisponibilidad()},
                     icon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     label = { Text("Disponibilidad", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToPerfil},
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) }
                 )
@@ -180,7 +185,7 @@ fun ServiciosScreen() {
                         // Botones Confirmar / Rechazar
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
-                                onClick = { },
+                                onClick = { onNavigateToDetalle},
                                 colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.weight(1f)
@@ -244,7 +249,7 @@ fun ServiciosScreen() {
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Button(
-                            onClick = { },
+                            onClick = { onNavigateToDetalle()},
                             colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.fillMaxWidth()

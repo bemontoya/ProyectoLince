@@ -24,7 +24,10 @@ import com.example.proyectolince.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerfilScreen() {
+fun PerfilScreen(
+    onVolver: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
+) {
     // Scaffold provee la estructura base de la pantalla Android (Barra superior, contenido y barra inferior)
     Scaffold(
 
