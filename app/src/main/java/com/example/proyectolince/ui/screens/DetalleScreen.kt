@@ -87,7 +87,7 @@ fun DetalleScreen(
                 )
                 NavigationBarItem(
                     selected = true,
-                    onClick = { },
+                    onClick = {onNavigateToServicios()},
                     icon = { Icon(Icons.Default.DirectionsCar, contentDescription = null)},
                     label = { Text("Detalle", fontSize = 11.sp)},
                     colors = NavigationBarItemDefaults.colors(
@@ -104,13 +104,13 @@ fun DetalleScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToAvisos},
+                    onClick = { onNavigateToAvisos()},
                     icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null)},
                     label = { Text("Avisos", fontSize = 11.sp)}
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToPerfil},
+                    onClick = { onNavigateToPerfil()},
                     icon = { Icon(Icons.Default.PersonOutline, contentDescription = null)},
                     label = { Text("Perfil", fontSize = 11.sp)}
                 )
