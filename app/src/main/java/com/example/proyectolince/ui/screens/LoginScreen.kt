@@ -1,26 +1,22 @@
 package com.example.proyectolince.ui.screens
 
-import android.graphics.Paint
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,44 +24,88 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// Reemplaza com.example.proyectolince con el paquete de tu proyecto si difiere
 import com.example.proyectolince.R
-//se importa toda la paleta de color con colores estandar definidos
 import com.example.proyectolince.ui.theme.*
+
+
+
+// enum es una lista cerrada de opciones.
+// cada rol guarda su texto y su ícono, así se evita repetir codigo
+enum class Rol(val etiqueta: String, val icono: ImageVector) {
+    DRIVER("Driver", Icons.Default.DirectionsCar),
+    GUIA("Guía", Icons.Default.Explore),
+    COORDINADOR("Coordinador", Icons.Default.Hub)
+}
+
+// "data class" = una ficha de datos que representa un usuario ficticio
+data class UsuarioFicticio(
+    val correo: String,
+    val clave: String,
+    val rol: Rol
+)
+
+// lista temporal de usuarios de prueba
+// esta lista se reemplaza por una consulta al Repository.
+private val usuariosDemo = listOf(
+    UsuarioFicticio("driver01@demo.lince", "Lince2026", Rol.DRIVER),
+    UsuarioFicticio("guia01@demo.lince", "Lince2026", Rol.GUIA),
+    UsuarioFicticio("coord01@demo.lince", "Lince2026", Rol.COORDINADOR)
+)
+
+
+
+// devuelve un texto de error si algo está mal, o null si todo está bien.
+private fun validarLogin(correo: String, clave: String, rol: Rol): String? {
+    if (correo.isBlank()) return "Ingresa tu correo"
+    // Patterns.EMAIL_ADDRESS revisa que tenga formato de correo (algo@algo.algo)
+    if (!Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches()) return "El correo no es válido"
+    if (clave.isBlank()) return "Ingresa tu contraseña"
+
+    // busca un usuario que coincida con correo y contraseña
+    val usuario = usuariosDemo.find {
+        it.correo.equals(correo.trim(), ignoreCase = true) && it.clave == clave
+    } ?: return "Correo o contraseña incorrectos"
+
+    // validación de rol si eligió la pestaña equivocada, no entra.
+    if (usuario.rol != rol) return "Este usuario no tiene el rol ${rol.etiqueta}"
+
+    return null
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit = {}
+    // Ahora avisamos QUÉ rol entró (antes no recibía nada).
+    // Así la navegación puede abrir pantallas distintas según el rol.
+    onLoginSuccess: (Rol) -> Unit = {}
 ) {
+    // ---- Estados (variables que, al cambiar, redibujan la pantalla) ----
+    var rolSeleccionado by remember { mutableStateOf(Rol.DRIVER) }
+    // Los campos parten VACÍOS: antes tenías un correo y una clave escritos en el código
+    var usuarioText by remember { mutableStateOf("") }
+    var passwordText by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    // String? significa "texto o nada". null = no hay error que mostrar.
+    var mensajeError by remember { mutableStateOf<String?>(null) }
 
-    //estados de la pantalla (variables cambian cuando el usuario interactúa)
-    var rolSeleccionado by remember { mutableStateOf(0) } // 0: driver, 1: guia, 2: coordinador
-    var usuarioText by remember { mutableStateOf("matias.jeldres@southbound.cl") }
-    var passwordText by remember { mutableStateOf("123456789012") }
-    var passwordVisible by remember { mutableStateOf(false) } //controla si la clave se ve o se ven puntos
-
-    // Usamos Scaffold nativo para garantizar que tome los márgenes reales del teléfono
-    Scaffold(
-        containerColor = FondoPantalla
-    ) { paddingValores ->
+    Scaffold(containerColor = FondoPantalla) { paddingValores ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValores)
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween // Distribuye el espacio de forma proporcional a todo el alto
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
 
+            // ---- BLOQUE SUPERIOR: logo y títulos (sin cambios) ----
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp)
             ) {
-                // Contenedor e imagen del logo oficial
                 Image(
                     painter = painterResource(id = R.drawable.logo_lince),
                     contentDescription = "Logo Southbound Field",
@@ -73,20 +113,14 @@ fun LoginScreen(
                         .size(72.dp)
                         .clip(RoundedCornerShape(16.dp))
                 )
-
                 Spacer(modifier = Modifier.height(20.dp))
-
-                //titulo principal
                 Text(
                     text = "Southbound Field",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoOscuro
                 )
-
                 Spacer(modifier = Modifier.height(6.dp))
-
-                //subtitulo con punto verde
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -95,7 +129,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Operaciones & Asignaciones Southbound",
+                        text = "Operaciones y asignaciones",
                         fontSize = 13.sp,
                         color = TextoGris,
                         fontWeight = FontWeight.Medium
@@ -103,7 +137,7 @@ fun LoginScreen(
                 }
             }
 
-
+            // ---- BLOQUE CENTRAL: formulario ----
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,9 +145,9 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
-                //selectro del rol
+                // Selector de rol
                 Surface(
-                    color = Color(0xFFE2E8F0).copy(alpha = 0.6f), //fondo gris claro
+                    color = Color(0xFFE2E8F0).copy(alpha = 0.6f),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -121,77 +155,22 @@ fun LoginScreen(
                         modifier = Modifier.padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        //pestaña de driver
-                        Button(
-                            onClick = { rolSeleccionado = 0 },
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues (horizontal = 4.dp, vertical = 0.dp ),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (rolSeleccionado == 0) Color.White else Color.Transparent,
-                                contentColor = if (rolSeleccionado == 0) TextoOscuro else TextoGris
-                            ),
-                            elevation = if (rolSeleccionado == 0) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ){
-                                Icon(Icons.Default.DirectionsCar, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Driver", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-
-                        //pestaña de guia
-                        Button(
-                            onClick = { rolSeleccionado = 1 },
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (rolSeleccionado == 1) Color.White else Color.Transparent,
-                                contentColor = if (rolSeleccionado == 1) TextoOscuro else TextoGris
-                            ),
-                            elevation = if (rolSeleccionado == 1) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-
-                            ){
-                            Icon(Icons.Default.Explore, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Guía", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                        }
-
-                        //pestaña coordinador
-                        Button(
-                            onClick = { rolSeleccionado = 2 },
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (rolSeleccionado == 2) Color.White else Color.Transparent,
-                                contentColor = if (rolSeleccionado == 2) TextoOscuro else TextoGris
-                            ),
-                            elevation = if (rolSeleccionado == 2) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                        // Antes eran 3 botones casi iguales (mucho código repetido).
+                        // Ahora recorremos la lista de roles y dibujamos una pestaña por cada uno.
+                        Rol.values().forEach { rol ->
+                            RolTab(
+                                rol = rol,
+                                seleccionado = rolSeleccionado == rol,
+                                onClick = {
+                                    rolSeleccionado = rol
+                                    mensajeError = null // al cambiar de rol, borramos el error anterior
+                                }
                             )
-                            {
-                            Icon(Icons.Default.Hub, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Coordinador", fontSize = 11.sp, fontWeight = FontWeight.Bold)}
                         }
                     }
                 }
 
-                //campo correo
+                // Campo correo
                 Column {
                     Text(
                         text = "CORREO",
@@ -200,15 +179,23 @@ fun LoginScreen(
                         color = TextoGris,
                         modifier = Modifier.padding(bottom = 6.dp)
                     )
-
                     OutlinedTextField(
                         value = usuarioText,
-                        onValueChange = { usuarioText = it },
+                        onValueChange = {
+                            usuarioText = it
+                            mensajeError = null // si el usuario escribe, el error desaparece
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
+                        // placeholder = texto gris de ayuda cuando el campo está vacío
+                        placeholder = { Text("driver01@demo.lince", color = TextoGris) },
                         leadingIcon = {
                             Icon(Icons.Default.AlternateEmail, contentDescription = null, tint = TextoGris)
                         },
+                        // isError pinta el borde de rojo cuando hay un mensaje de error
+                        isError = mensajeError != null,
+                        // Teclado con la arroba a mano
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White,
@@ -219,7 +206,7 @@ fun LoginScreen(
                     )
                 }
 
-                //campo contraseña con la opcion de "¿olvidaste tu contraseña?"
+                // Campo contraseña
                 Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -232,6 +219,7 @@ fun LoginScreen(
                             fontWeight = FontWeight.Bold,
                             color = TextoGris
                         )
+                        // Por ahora no hace nada (es un MVP con datos ficticios)
                         TextButton(onClick = { }) {
                             Text(
                                 text = "¿Olvidaste tu contraseña?",
@@ -241,27 +229,29 @@ fun LoginScreen(
                             )
                         }
                     }
-
                     OutlinedTextField(
                         value = passwordText,
-                        onValueChange = { passwordText = it },
+                        onValueChange = {
+                            passwordText = it
+                            mensajeError = null
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         leadingIcon = {
                             Icon(Icons.Default.Lock, contentDescription = null, tint = TextoGris)
                         },
-                        //icono al final para mostrar u ocultaer la contraseña mediante el estado 'passwordVisible'
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = "Ocultar/Mostrar clave",
+                                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
                                     tint = TextoGris
                                 )
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        isError = mensajeError != null,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White,
@@ -272,13 +262,39 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                // Mensaje de error: solo se dibuja si mensajeError NO es null.
+                // "?.let { }" significa: "si hay texto, haz esto con él".
+                mensajeError?.let { texto ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.ErrorOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = texto,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
 
-                //boton de iniciar sesion
+
+                // Botón iniciar sesión
                 Button(
                     onClick = {
-                        println("DEBUG_LOG: Botón de Inciar Sesión presionado")
-                        onLoginSuccess() },
+                        // 1) Validamos todo con la función de arriba
+                        val error = validarLogin(usuarioText, passwordText, rolSeleccionado)
+                        if (error == null) {
+                            // 2) Sin errores: avisamos qué rol entró
+                            onLoginSuccess(rolSeleccionado)
+                        } else {
+                            // 3) Con error: lo guardamos en el estado y la pantalla lo muestra
+                            mensajeError = error
+                        }
+                    },
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
@@ -287,34 +303,52 @@ fun LoginScreen(
                         .height(52.dp)
                 ) {
                     Text(
-                        text = "Iniciar Sesión",
+                        text = "Iniciar sesión",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        imageVector = Icons.Default.ArrowForward,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )
                 }
             }
-
-            //pie de la pagina (Ubicado en el fondo nativo de la pantalla)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Text(
-                    text = "Southbound Expeditions & Transport Chile",
-                    fontSize = 11.sp,
-                    color = TextoGris
-                )
-            }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// COMPONENTE REUTILIZABLE: una pestaña del selector de rol
+// ─────────────────────────────────────────────────────────────
+
+// "RowScope." permite usar Modifier.weight(1f) dentro de un Row.
+// Así las 3 pestañas reparten el ancho en partes iguales.
+@Composable
+private fun RowScope.RolTab(
+    rol: Rol,
+    seleccionado: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+        colors = ButtonDefaults.buttonColors(
+            // Si está seleccionada: fondo blanco. Si no: transparente.
+            containerColor = if (seleccionado) Color.White else Color.Transparent,
+            contentColor = if (seleccionado) TextoOscuro else TextoGris
+        ),
+        elevation = if (seleccionado) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
+        modifier = Modifier
+            .weight(1f)
+            .height(40.dp) // la misma altura para las 3: esto arregla el desalineado de tu captura
+    ) {
+        Icon(rol.icono, contentDescription = null, modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(rol.etiqueta, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }

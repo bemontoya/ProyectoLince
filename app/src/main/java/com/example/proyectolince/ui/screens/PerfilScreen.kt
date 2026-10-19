@@ -2,6 +2,7 @@ package com.example.proyectolince.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -35,8 +36,6 @@ fun PerfilScreen(
     // Scaffold provee la estructura base de la pantalla Android (Barra superior, contenido y barra inferior)
     Scaffold(
 
-        // 1. BARRA SUPERIOR (TopAppBar)
-
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -63,7 +62,7 @@ fun PerfilScreen(
                 },
                 actions = {
                     // botón de icono para las notificaciones
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onNavigateToNotificaciones()}) {
                         Icon(
                             imageVector = Icons.Default.NotificationsNone,
                             contentDescription = "Notificaciones",
@@ -93,7 +92,6 @@ fun PerfilScreen(
         },
 
 
-        // 2. BARRA DE NAVEGACIÓN INFERIOR (BottomBar)
 
         bottomBar = {
             NavigationBar(containerColor = Color.White) {
@@ -115,14 +113,7 @@ fun PerfilScreen(
                     icon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                     label = { Text("Disponibilidad", fontSize = 11.sp) }
                 )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { onNavigateToNotificaciones() },
-                    icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null) },
-                    label = { Text("Notificaciones", fontSize = 11.sp) }
 
-                // pestaña 'Perfil' activa (destacada en azul)
-                )
                 NavigationBarItem(
                     selected = true,
                     onClick = {},
@@ -425,7 +416,7 @@ fun PerfilScreen(
 
             item {
                 Button(
-                    onClick = { },
+                    onClick = { onCerrarSesion },
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = RojoRechazar, // fondo rosado suave (#FEE2E2)
@@ -490,13 +481,14 @@ fun OpcionPerfilItem(
     icono: androidx.compose.ui.graphics.vector.ImageVector,
     titulo: String,
     subtitulo: String,
-    badgeTexto: String? = null, // Parámetro opcional por si la opción lleva una etiqueta (ej: "Al día")
+    badgeTexto: String? = null, // parámetro opcional por si la opción lleva una etiqueta (ej: "Al día")
     badgeColor: Color = AzulPrincipal,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable{onClick}
             .padding(vertical = 8.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -505,7 +497,7 @@ fun OpcionPerfilItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            // Contenedor cuadrado con bordes redondeados para el icono de la izquierda
+            // contenedor cuadrado con bordes redondeados para el icono de la izquierda
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -552,7 +544,7 @@ fun OpcionPerfilItem(
             }
         }
 
-        // Elementos en el extremo derecho (Badge opcional + Flecha de navegación)
+        // elementos en el extremo derecho (Badge opcional + Flecha de navegación)
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (badgeTexto != null) {
                 Surface(

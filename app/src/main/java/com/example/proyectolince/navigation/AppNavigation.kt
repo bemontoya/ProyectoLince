@@ -96,5 +96,14 @@ fun AppNavigation(){
                 }
             )
         }
+
+        composable("avisos"){
+            NotificacionesScreen  (
+                onNavigateToServicios = {navController.navigate("servicios")},
+                onNavigateToDetalle = {navController.navigate("detalle")},
+                onNavigateToDisponibilidad = {navController.navigate("disponibilidad")},
+                onNavigateToPerfil = {navController.navigate("perfil")}
+            )
+        }
     }
 }

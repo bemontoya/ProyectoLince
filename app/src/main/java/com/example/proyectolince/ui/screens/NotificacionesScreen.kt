@@ -88,17 +88,6 @@ fun NotificacionesScreen(
                     label = { Text("Disponibilidad", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = null) },
-                    label = { Text("Notificaciones", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = AzulPrincipal,
-                        selectedTextColor = AzulPrincipal,
-                        indicatorColor = AzulSecundario
-                    )
-                )
-                NavigationBarItem(
                     selected = false,
                     onClick = { onNavigateToPerfil() },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },

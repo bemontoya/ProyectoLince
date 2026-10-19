@@ -95,15 +95,6 @@ fun DisponibilidadScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = {onNavigateToNotificaciones()},
-                    icon = {Icon(Icons.Default.NotificationsNone, contentDescription = null)},
-                    label = {Text("Notificaciones", fontSize = 11.sp)}
-                )
-
-
-
-                NavigationBarItem(
-                    selected = false,
                     onClick = { onNavigateToPerfil()},
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) }
