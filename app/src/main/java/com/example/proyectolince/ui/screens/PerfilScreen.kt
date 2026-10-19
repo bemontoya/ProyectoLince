@@ -30,7 +30,7 @@ fun PerfilScreen(
     onNavigateToServicios: () -> Unit = {},
     onNavigateToDetalle: () -> Unit = {},
     onNavigateToDisponibilidad: () -> Unit = {},
-    onNavigateToAvisos: () -> Unit = {}
+    onNavigateToNotificaciones: () -> Unit = {}
 ) {
     // Scaffold provee la estructura base de la pantalla Android (Barra superior, contenido y barra inferior)
     Scaffold(
@@ -117,9 +117,9 @@ fun PerfilScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToAvisos() },
+                    onClick = { onNavigateToNotificaciones() },
                     icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null) },
-                    label = { Text("Avisos", fontSize = 11.sp) }
+                    label = { Text("Notificaciones", fontSize = 11.sp) }
 
                 // pestaña 'Perfil' activa (destacada en azul)
                 )

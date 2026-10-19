@@ -34,7 +34,7 @@ import java.util.Locale
 fun DisponibilidadScreen(
     onNavigateToServicios: () -> Unit = {},
     onNavigateToDetalle: () -> Unit = {},
-    onNavigateToAvisos: () -> Unit = {},
+    onNavigateToNotificaciones: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {}
 ) {
     Scaffold(
@@ -50,7 +50,7 @@ fun DisponibilidadScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToAvisos() }) {
+                    IconButton(onClick = { onNavigateToNotificaciones() }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
                     }
                     Box(
@@ -95,9 +95,9 @@ fun DisponibilidadScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = {onNavigateToAvisos()},
+                    onClick = {onNavigateToNotificaciones()},
                     icon = {Icon(Icons.Default.NotificationsNone, contentDescription = null)},
-                    label = {Text("Avisos", fontSize = 11.sp)}
+                    label = {Text("Notificaciones", fontSize = 11.sp)}
                 )
 
 

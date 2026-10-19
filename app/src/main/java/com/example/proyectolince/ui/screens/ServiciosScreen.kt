@@ -21,7 +21,7 @@ import com.example.proyectolince.ui.theme.*
 fun ServiciosScreen(
     onNavigateToDetalle: () -> Unit = {},
     onNavigateToDisponibilidad: () -> Unit = {},
-    onNavigateToAvisos: () -> Unit = {},
+    onNavigateToNotificaciones: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {}
 ) {
     Scaffold(
@@ -38,7 +38,7 @@ fun ServiciosScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToAvisos }) {
+                    IconButton(onClick = { onNavigateToNotificaciones }) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
                     }
                 },
@@ -73,9 +73,9 @@ fun ServiciosScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToAvisos() },
+                    onClick = { onNavigateToNotificaciones() },
                     icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null) },
-                    label = { Text("Avisos", fontSize = 11.sp) }
+                    label = { Text("notificaciones", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,

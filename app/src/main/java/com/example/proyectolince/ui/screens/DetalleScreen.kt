@@ -35,7 +35,7 @@ fun DetalleScreen(
     onVolver: () -> Unit = {},
     onNavigateToServicios: () -> Unit = {},
     onNavigateToDisponibilidad: () -> Unit = {},
-    onNavigateToAvisos: () -> Unit = {},
+    onNavigateToNotificaciones: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {}
 ){
 
@@ -104,9 +104,9 @@ fun DetalleScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToAvisos()},
+                    onClick = { onNavigateToNotificaciones()},
                     icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null)},
-                    label = { Text("Avisos", fontSize = 11.sp)}
+                    label = { Text("notificaciones", fontSize = 11.sp)}
                 )
                 NavigationBarItem(
                     selected = false,

@@ -49,7 +49,7 @@ fun AppNavigation(){
             ServiciosScreen(
                 onNavigateToDetalle = { navController.navigateTab("detalle") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
-                onNavigateToAvisos = { navController.navigateTab("avisos") },
+                onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onNavigateToPerfil = { navController.navigateTab("perfil") }
             )
         }
@@ -59,7 +59,7 @@ fun AppNavigation(){
                 onVolver = { navController.navigateTab("servicios") },
                 onNavigateToServicios = { navController.navigateTab("servicios") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
-                onNavigateToAvisos = { navController.navigateTab("avisos") },
+                onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onNavigateToPerfil = { navController.navigateTab("perfil") }
             )
         }
@@ -68,12 +68,12 @@ fun AppNavigation(){
             DisponibilidadScreen(
                 onNavigateToServicios = { navController.navigateTab("servicios") },
                 onNavigateToDetalle = { navController.navigateTab("detalle") },
-                onNavigateToAvisos = { navController.navigateTab("avisos") },
+                onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onNavigateToPerfil = { navController.navigateTab("perfil") }
             )
         }
 
-        composable("avisos"){
+        composable("notificaciones"){
             NotificacionesScreen(
                 onNavigateToServicios = { navController.navigateTab("servicios") },
                 onNavigateToDetalle = { navController.navigateTab("detalle") },
@@ -88,7 +88,7 @@ fun AppNavigation(){
                 onNavigateToServicios = { navController.navigateTab("servicios") },
                 onNavigateToDetalle = { navController.navigateTab("detalle") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
-                onNavigateToAvisos = { navController.navigateTab("avisos") },
+                onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onCerrarSesion = {
                     navController.navigate("login"){
                         popUpTo(0) {inclusive = true}
