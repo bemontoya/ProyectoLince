@@ -26,7 +26,11 @@ import com.example.proyectolince.ui.theme.*
 @Composable
 fun PerfilScreen(
     onVolver: () -> Unit = {},
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit = {},
+    onNavigateToServicios: () -> Unit = {},
+    onNavigateToDetalle: () -> Unit = {},
+    onNavigateToDisponibilidad: () -> Unit = {},
+    onNavigateToAvisos: () -> Unit = {}
 ) {
     // Scaffold provee la estructura base de la pantalla Android (Barra superior, contenido y barra inferior)
     Scaffold(
@@ -95,26 +99,33 @@ fun PerfilScreen(
             NavigationBar(containerColor = Color.White) {
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = {onNavigateToServicios()},
                     icon = { Icon(Icons.Default.AltRoute, contentDescription = null) },
                     label = { Text("Servicios", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = { onNavigateToDetalle()},
                     icon = { Icon(Icons.Default.DirectionsCar, contentDescription = null) },
                     label = { Text("Detalle", fontSize = 11.sp) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = {onNavigateToDisponibilidad() },
                     icon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                     label = { Text("Disponibilidad", fontSize = 11.sp) }
                 )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { onNavigateToAvisos() },
+                    icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null) },
+                    label = { Text("Avisos", fontSize = 11.sp) }
+
                 // pestaña 'Perfil' activa (destacada en azul)
+                )
                 NavigationBarItem(
                     selected = true,
-                    onClick = { },
+                    onClick = {},
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) },
                     colors = NavigationBarItemDefaults.colors(
