@@ -73,7 +73,13 @@ fun ServiciosScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToPerfil},
+                    onClick = { onNavigateToAvisos() },
+                    icon = { Icon(Icons.Default.NotificationsNone, contentDescription = null) },
+                    label = { Text("Avisos", fontSize = 11.sp) }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { onNavigateToPerfil()},
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) }
                 )

@@ -104,7 +104,7 @@ fun DisponibilidadScreen(
 
                 NavigationBarItem(
                     selected = false,
-                    onClick = { onNavigateToPerfil},
+                    onClick = { onNavigateToPerfil()},
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("Perfil", fontSize = 11.sp) }
                 )
