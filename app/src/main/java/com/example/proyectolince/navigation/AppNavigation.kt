@@ -1,14 +1,11 @@
 package com.example.proyectolince.navigation
 
-//importacion para el flujo de navegacion
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-//importacion de las pantallas
 import com.example.proyectolince.ui.screens.LoginScreen
 import com.example.proyectolince.ui.screens.PerfilScreen
 import com.example.proyectolince.ui.screens.DetalleScreen
@@ -19,7 +16,7 @@ import com.example.proyectolince.ui.screens.DisponibilidadScreen
 
 private fun NavController.navigateTab(route: String) {
     navigate(route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        popUpTo("servicios") { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
@@ -27,7 +24,6 @@ private fun NavController.navigateTab(route: String) {
 
 @Composable
 fun AppNavigation(){
-    // controller que va a gestionar los cambios de pantalla
     val navController = rememberNavController()
 
     NavHost(
@@ -36,10 +32,9 @@ fun AppNavigation(){
     ){
         composable("login") {
             LoginScreen(
-                onLoginSuccess = {
+                onLoginSuccess = { _ ->
                     navController.navigate("servicios"){
-                        //limpia el login del historial para no volver al presionar 'atrás'
-                        popUpTo("login") {inclusive = true}
+                        popUpTo("login") { inclusive = true }
                     }
                 }
             )
@@ -47,7 +42,7 @@ fun AppNavigation(){
 
         composable("servicios"){
             ServiciosScreen(
-                onNavigateToDetalle = { navController.navigateTab("detalle") },
+                onNavigateToDetalle = { navController.navigate("detalle") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
                 onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onNavigateToPerfil = { navController.navigateTab("perfil") }
@@ -56,7 +51,7 @@ fun AppNavigation(){
 
         composable("detalle"){
             DetalleScreen(
-                onVolver = { navController.navigateTab("servicios") },
+                onVolver = { navController.popBackStack() },
                 onNavigateToServicios = { navController.navigateTab("servicios") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
                 onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
@@ -67,7 +62,6 @@ fun AppNavigation(){
         composable("disponibilidad"){
             DisponibilidadScreen(
                 onNavigateToServicios = { navController.navigateTab("servicios") },
-                onNavigateToDetalle = { navController.navigateTab("detalle") },
                 onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onNavigateToPerfil = { navController.navigateTab("perfil") }
             )
@@ -76,7 +70,7 @@ fun AppNavigation(){
         composable("notificaciones"){
             NotificacionesScreen(
                 onNavigateToServicios = { navController.navigateTab("servicios") },
-                onNavigateToDetalle = { navController.navigateTab("detalle") },
+                onNavigateToDetalle = { navController.navigate("detalle") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
                 onNavigateToPerfil = { navController.navigateTab("perfil") }
             )
@@ -86,23 +80,14 @@ fun AppNavigation(){
             PerfilScreen(
                 onVolver = { navController.navigateTab("servicios") },
                 onNavigateToServicios = { navController.navigateTab("servicios") },
-                onNavigateToDetalle = { navController.navigateTab("detalle") },
+                onNavigateToDetalle = { navController.navigate("detalle") },
                 onNavigateToDisponibilidad = { navController.navigateTab("disponibilidad") },
                 onNavigateToNotificaciones = { navController.navigateTab("notificaciones") },
                 onCerrarSesion = {
                     navController.navigate("login"){
-                        popUpTo(0) {inclusive = true}
+                        popUpTo(0) { inclusive = true }
                     }
                 }
-            )
-        }
-
-        composable("avisos"){
-            NotificacionesScreen  (
-                onNavigateToServicios = {navController.navigate("servicios")},
-                onNavigateToDetalle = {navController.navigate("detalle")},
-                onNavigateToDisponibilidad = {navController.navigate("disponibilidad")},
-                onNavigateToPerfil = {navController.navigate("perfil")}
             )
         }
     }
