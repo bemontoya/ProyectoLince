@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.proyectolince.ui.theme.*
 
-// Los 3 destinos principales permitidos en la barra de navegación
+
 enum class Destino(
     val ruta: String,
     val etiqueta: String,

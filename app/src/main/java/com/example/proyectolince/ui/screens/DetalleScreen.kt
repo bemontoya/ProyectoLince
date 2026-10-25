@@ -106,14 +106,14 @@ fun DetalleScreen(
         }
     }
 
-    // Cargar registro de Room al abrir la pantalla
+
     LaunchedEffect(detalle.codigo) {
         viewModel.cargarRegistroServicio(detalle.codigo)
     }
 
     val registroActual by viewModel.registroActual.collectAsState()
 
-    // Determinar la fase actual basándose en los datos de Room
+
     val fase = when {
         registroActual?.horaCheckOut != null -> FaseServicio.FINALIZADO
         registroActual?.horaCheckIn != null -> FaseServicio.EN_CURSO
@@ -128,7 +128,7 @@ fun DetalleScreen(
         observacionesText = registroActual?.observaciones.orEmpty()
     }
 
-    // Recurso Nativo 1: Mapas externos
+
     fun abrirMapa() {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(detalle.destino)))
         try {
@@ -138,7 +138,7 @@ fun DetalleScreen(
         }
     }
 
-    // Recurso Nativo 2: Llamada telefónica mediante Intent ACTION_DIAL
+
     fun realizarLlamada() {
         val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${detalle.telefonoContacto}"))
         try {
@@ -342,7 +342,7 @@ fun DetalleScreen(
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)
-                                        .weight(1f) // Ocupa todo el espacio vertical entre el punto superior e inferior
+                                        .weight(1f)
                                         .background(VerdeConfirmado)
                                 )
 
