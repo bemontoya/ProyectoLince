@@ -23,7 +23,7 @@ Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comun
 2. **Guía de Turismo:** Accede al detalle de excursiones, listas de pasajeros (`pax`), rutas e información meteorológica.
 3. **Coordinador:** Supervisa asignaciones, confirma o reasigna servicios rechazados y gestiona la flota.
 
-### ⚙️ Funcionalidades Clave Implementadas
+### Funcionalidades Clave Implementadas
 - **Autenticación con Roles e Interfaz Anti-Teclado:** Pantalla de Login adaptable (`verticalScroll`, `imePadding` y `windowSoftInputMode="adjustResize"`) con selección rápida de rol (`Driver`, `Guía`, `Coordinador`).
 - **Lista de Servicios Dinámica:** Tarjetas con estados operativos (`PENDIENTE`, `CONFIRMADO`, `RECHAZADO`), separación clara de acciones (*Ver detalles* para Excursiones / Tours vs. *Iniciar check-in de pasajeros* para Transfers) y filtrado rápido mediante `FilterChip`.
 - **Integración API REST (Red):** Peticiones en tiempo real a la API de **OpenWeatherMap** mediante **Retrofit 2** para predecir el clima en los puntos de destino y ruta.
