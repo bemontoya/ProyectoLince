@@ -16,7 +16,6 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,14 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectolince.ui.theme.*
+import com.example.proyectolince.ui.viewmodel.DetalleViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.proyectolince.data.network.WeatherRetrofitInstance
+import com.example.proyectolince.BuildConfig
 
 
-
-// enum evita errores, no  se puede escribir una fase que no exista.
 private enum class FaseServicio { SIN_INICIAR, EN_CURSO, FINALIZADO }
 
 private data class DetalleServicio(
@@ -52,6 +49,7 @@ private data class DetalleServicio(
     val pasajeros: Int,
     val grupo: String,
     val contacto: String,
+    val telefonoContacto: String,
     val vehiculo: String,
     val capacidad: String,
     val patente: String
@@ -72,20 +70,17 @@ private val detalleDemo = DetalleServicio(
     pasajeros = 4,
     grupo = "Grupo de prueba",
     contacto = "Titular demo",
+    telefonoContacto = "+56912345678",
     vehiculo = "Mercedes Sprinter",
     capacidad = "Capacidad 12 + 1",
     patente = "KJ • 8821"
 )
 
-// devuelve la hora actual como texto
-// uso SimpleDateFormat, funciona en todas las versiones de Android.
-private fun horaActual(): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleScreen(
     inicialUsuario: String = "D",
+    viewModel: DetalleViewModel,
     onVolver: () -> Unit = {},
     onNavigateToServicios: () -> Unit = {},
     onNavigateToHistorial: () -> Unit = {},
@@ -94,29 +89,65 @@ fun DetalleScreen(
     onNavigateToPerfil: () -> Unit = {}
 ) {
     val detalle = detalleDemo
+    val contexto = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var temperatura by remember { mutableStateOf<String?>(null) }
+    var condicion by remember { mutableStateOf<String?>(null) }
 
-    // rememberSaveable es igual que remember, pero no se pierde al girar el teléfono.
-    var fase by rememberSaveable { mutableStateOf(FaseServicio.SIN_INICIAR) }
-    var horaCheckIn by rememberSaveable { mutableStateOf("") }
-    var horaCheckOut by rememberSaveable { mutableStateOf("") }
-    var observaciones by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        try {
+            val clima = WeatherRetrofitInstance.api.obtenerClima("Puerto Montt", BuildConfig.OPENWEATHER_API_KEY)
+            temperatura = "${clima.main.temp.toInt()}°C"
+            condicion = clima.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }
+        } catch (e: Exception){
+            temperatura = "14°C"
+            condicion = "Parcialmente nublado (Offline)"
+        }
+    }
 
-    val snackbarHostState = remember { SnackbarHostState() }   // mensajes cortos abajo
-    val scope = rememberCoroutineScope()                       // para poder mostrarlos
-    val contexto = LocalContext.current                        // para abrir otras app
+    // Cargar registro de Room al abrir la pantalla
+    LaunchedEffect(detalle.codigo) {
+        viewModel.cargarRegistroServicio(detalle.codigo)
+    }
 
-    // Abre la app de mapas con el destino. "geo:" es un formato estándar que entienden Google Maps, Waze, etc.
+    val registroActual by viewModel.registroActual.collectAsState()
+
+    // Determinar la fase actual basándose en los datos de Room
+    val fase = when {
+        registroActual?.horaCheckOut != null -> FaseServicio.FINALIZADO
+        registroActual?.horaCheckIn != null -> FaseServicio.EN_CURSO
+        else -> FaseServicio.SIN_INICIAR
+    }
+
+    val horaCheckIn = registroActual?.horaCheckIn.orEmpty()
+    val horaCheckOut = registroActual?.horaCheckOut.orEmpty()
+    var observacionesText by remember { mutableStateOf("") }
+
+    LaunchedEffect(registroActual?.observaciones) {
+        observacionesText = registroActual?.observaciones.orEmpty()
+    }
+
+    // Recurso Nativo 1: Mapas externos
     fun abrirMapa() {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(detalle.destino)))
         try {
             contexto.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            // avisa con un mensaje cuando no hay alguna app de mapa instalada
             scope.launch { snackbarHostState.showSnackbar("No hay una app de mapas instalada") }
         }
     }
 
-    // el badge de arriba cambia según la fase: (texto, color de fondo, color de texto)
+    // Recurso Nativo 2: Llamada telefónica mediante Intent ACTION_DIAL
+    fun realizarLlamada() {
+        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${detalle.telefonoContacto}"))
+        try {
+            contexto.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            scope.launch { snackbarHostState.showSnackbar("No se puede realizar la llamada") }
+        }
+    }
+
     val badgeFase = when (fase) {
         FaseServicio.SIN_INICIAR -> Triple("CONFIRMADO", VerdeFondoBadge, VerdeConfirmado)
         FaseServicio.EN_CURSO -> Triple("EN CURSO", AzulSecundario, AzulPrincipal)
@@ -132,8 +163,6 @@ fun DetalleScreen(
     Scaffold(
         containerColor = FondoPantalla,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-
-
         topBar = {
             TopAppBar(
                 title = {
@@ -146,7 +175,6 @@ fun DetalleScreen(
                     IconButton(onClick = onNavigateToNotificaciones) {
                         Icon(Icons.Default.NotificationsNone, contentDescription = "Notificaciones", tint = TextoOscuro)
                     }
-
                     Box(
                         modifier = Modifier
                             .padding(end = 12.dp)
@@ -162,31 +190,25 @@ fun DetalleScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoPantalla)
             )
         },
-
         bottomBar = {
             Column {
                 Surface(color = FondoPantalla, modifier = Modifier.fillMaxWidth()) {
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                        // el botón cambia según la fase del servicio
                         when (fase) {
                             FaseServicio.SIN_INICIAR -> BotonPrincipal(
                                 texto = "REGISTRAR CHECK-IN",
                                 icono = Icons.Default.HowToReg,
                                 onClick = {
-                                    val hora = horaActual()   // se guarda la hora exacta
-                                    horaCheckIn = hora
-                                    fase = FaseServicio.EN_CURSO
-                                    scope.launch { snackbarHostState.showSnackbar("Check-in registrado a las $hora") }
+                                    viewModel.registrarCheckIn(detalle.codigo)
+                                    scope.launch { snackbarHostState.showSnackbar("Check-in guardado en Room") }
                                 }
                             )
                             FaseServicio.EN_CURSO -> BotonPrincipal(
                                 texto = "REGISTRAR CHECK-OUT",
                                 icono = Icons.AutoMirrored.Filled.ExitToApp,
                                 onClick = {
-                                    val hora = horaActual()
-                                    horaCheckOut = hora
-                                    fase = FaseServicio.FINALIZADO
-                                    scope.launch { snackbarHostState.showSnackbar("Check-out registrado a las $hora") }
+                                    viewModel.registrarCheckOut(detalle.codigo, observacionesText)
+                                    scope.launch { snackbarHostState.showSnackbar("Check-out guardado en Room") }
                                 }
                             )
                             FaseServicio.FINALIZADO -> Surface(
@@ -217,13 +239,6 @@ fun DetalleScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = onNavigateToHistorial,
-                        icon = { Icon(Icons.Default.History, contentDescription = null) },
-                        label = { Text("Historial", fontSize = 11.sp) },
-                        colors = coloresNav
-                    )
-                    NavigationBarItem(
-                        selected = false,
                         onClick = onNavigateToDisponibilidad,
                         icon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                         label = { Text("Disponibilidad", fontSize = 11.sp) },
@@ -240,7 +255,6 @@ fun DetalleScreen(
             }
         }
     ) { paddingValues ->
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -248,8 +262,6 @@ fun DetalleScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -279,7 +291,6 @@ fun DetalleScreen(
                 }
             }
 
-
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -287,7 +298,6 @@ fun DetalleScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -311,62 +321,50 @@ fun DetalleScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
 
-                        Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min)
+                        ) {
+
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.padding(top = 4.dp, end = 12.dp)
                             ) {
-                                Box(modifier = Modifier.size(12.dp).background(AzulPrincipal, CircleShape))
-                                Box(modifier = Modifier.width(2.dp).height(44.dp).background(VerdeConfirmado))
-                                Box(modifier = Modifier.size(12.dp).background(VerdeConfirmado, CircleShape))
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .background(AzulPrincipal, CircleShape)
+                                )
+
+
+                                Box(
+                                    modifier = Modifier
+                                        .width(2.dp)
+                                        .weight(1f) // Ocupa todo el espacio vertical entre el punto superior e inferior
+                                        .background(VerdeConfirmado)
+                                )
+
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .background(VerdeConfirmado, CircleShape)
+                                )
                             }
-                            Column {
+
+
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text("ORIGEN", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
                                 Text(detalle.origen, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
                                 Text(detalle.origenReferencia, fontSize = 12.sp, color = TextoGris)
 
-                                Spacer(modifier = Modifier.height(14.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
 
                                 Text("DESTINO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
                                 Text(detalle.destino, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
                                 Text(detalle.destinoReferencia, fontSize = 12.sp, color = TextoGris)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(110.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFEEF2F6)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Surface(
-                                    color = Color.White,
-                                    shape = RoundedCornerShape(12.dp),
-                                    shadowElevation = 2.dp,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = AzulPrincipal, modifier = Modifier.size(20.dp))
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Column {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Text("${detalle.duracion} ", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
-                                                Text("(${detalle.distancia}) • Ruta estimada", fontSize = 12.sp, color = TextoGris)
-                                            }
-                                            Text(detalle.ruta, fontSize = 11.sp, color = TextoGris)
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text("Mapa simulado", fontSize = 11.sp, color = TextoGris)
                             }
                         }
                     }
@@ -374,9 +372,31 @@ fun DetalleScreen(
             }
 
             item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                    // Tarjeta de pasajeros
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = AzulSecundario),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+
+                ){
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Icon(Icons.Default.WbSunny, contentDescription = null, tint = AzulPrincipal)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column{
+                            Text("Clima en ruta / Aeropuerto Tepual", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AzulPrincipal)
+                            Text("${temperatura ?: "--"} • ${condicion ?: "Cargando..."}", fontSize = 13.sp, color = TextoOscuro )
+                        }
+
+                    }
+                }
+
+            }
+
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         shape = RoundedCornerShape(16.dp),
@@ -410,9 +430,7 @@ fun DetalleScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .clickable {
-                                        scope.launch { snackbarHostState.showSnackbar("Llamada simulada (datos de prueba)") }
-                                    }
+                                    .clickable { realizarLlamada() }
                             ) {
                                 Row(
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -443,7 +461,6 @@ fun DetalleScreen(
                             Text("PATENTE ASIGNADA", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
                             Spacer(modifier = Modifier.height(4.dp))
 
-
                             Box(
                                 modifier = Modifier
                                     .border(1.dp, TextoOscuro, RoundedCornerShape(6.dp))
@@ -460,7 +477,6 @@ fun DetalleScreen(
                 }
             }
 
-            //registro de ejecución que solo aparece cuando ya se hizo el check-in.
             if (fase != FaseServicio.SIN_INICIAR) {
                 item {
                     Card(
@@ -474,7 +490,6 @@ fun DetalleScreen(
 
                             FilaRegistro("Check-in", horaCheckIn, TextoOscuro)
                             HorizontalDivider(color = Color(0xFFE2E8F0))
-                            // si todavía no hay check-out muestra "Pendiente" en gris
                             FilaRegistro(
                                 "Check-out",
                                 if (horaCheckOut.isBlank()) "Pendiente" else horaCheckOut,
@@ -483,11 +498,9 @@ fun DetalleScreen(
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-
-                            // readOnly: cuando el servicio termina, ya no se puede editar el texto.
                             OutlinedTextField(
-                                value = observaciones,
-                                onValueChange = { observaciones = it },
+                                value = observacionesText,
+                                onValueChange = { observacionesText = it },
                                 label = { Text("Observaciones (opcional)") },
                                 readOnly = fase == FaseServicio.FINALIZADO,
                                 minLines = 2,
@@ -519,8 +532,6 @@ fun DetalleScreen(
     }
 }
 
-
-
 @Composable
 private fun BotonPrincipal(texto: String, icono: ImageVector, onClick: () -> Unit) {
     Button(
@@ -535,7 +546,6 @@ private fun BotonPrincipal(texto: String, icono: ImageVector, onClick: () -> Uni
     }
 }
 
-
 @Composable
 private fun EtiquetaSeccion(icono: ImageVector, texto: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -545,7 +555,6 @@ private fun EtiquetaSeccion(icono: ImageVector, texto: String) {
     }
 }
 
-// una fila del registro: nombre a la izquierda y valor a la derecha
 @Composable
 private fun FilaRegistro(etiqueta: String, valor: String, colorValor: Color) {
     Row(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -23,9 +24,14 @@ import androidx.compose.ui.unit.sp
 // importación de la paleta de colores definida en ui.theme
 import com.example.proyectolince.ui.theme.*
 
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.example.proyectolince.data.network.RetrofitInstance
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(
+    nombreUsuario: String = "Driver Demo",
+    inicialUsuario: String = "D",
     onVolver: () -> Unit = {},
     onCerrarSesion: () -> Unit = {},
     onNavigateToServicios: () -> Unit = {},
@@ -33,22 +39,28 @@ fun PerfilScreen(
     onNavigateToDisponibilidad: () -> Unit = {},
     onNavigateToNotificaciones: () -> Unit = {}
 ) {
-    // Scaffold provee la estructura base de la pantalla Android (Barra superior, contenido y barra inferior)
+
+    var fotoUrl by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        try{
+            val respuesta = RetrofitInstance.randomUserApi.obtenerUsuario()
+            fotoUrl = respuesta.results.firstOrNull()?.picture?.fotoUrl
+        } catch (e: Exception) {
+            //si falla o no hay conexion se mantiene null para mostrar el icono en gris
+        }
+    }
+
     Scaffold(
 
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
-                    // se alinean los títulos a la izquierda usando una columna dentro de la barra
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 12.dp)
-                    ) {
+
+                    Column {
                         Text(
                             text = "Southbound Field",
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
                             color = TextoGris,
                             fontWeight = FontWeight.Bold
                         )
@@ -61,7 +73,7 @@ fun PerfilScreen(
                     }
                 },
                 actions = {
-                    // botón de icono para las notificaciones
+
                     IconButton(onClick = { onNavigateToNotificaciones()}) {
                         Icon(
                             imageVector = Icons.Default.NotificationsNone,
@@ -70,7 +82,7 @@ fun PerfilScreen(
                         )
                     }
 
-                    // avatar simulado en el header (Círculo azul con la inicial 'M')
+
                     Box(
                         modifier = Modifier
                             .padding(end = 12.dp)
@@ -80,74 +92,53 @@ fun PerfilScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "M",
+                            text = inicialUsuario,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = FondoPantalla)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoPantalla)
             )
         },
 
 
 
-        bottomBar = {
-            NavigationBar(containerColor = Color.White) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {onNavigateToServicios()},
-                    icon = { Icon(Icons.Default.AltRoute, contentDescription = null) },
-                    label = { Text("Servicios", fontSize = 11.sp) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { onNavigateToDetalle()},
-                    icon = { Icon(Icons.Default.DirectionsCar, contentDescription = null) },
-                    label = { Text("Detalle", fontSize = 11.sp) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {onNavigateToDisponibilidad() },
-                    icon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
-                    label = { Text("Disponibilidad", fontSize = 11.sp) }
-                )
 
-                NavigationBarItem(
-                    selected = true,
-                    onClick = {},
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("Perfil", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = AzulPrincipal,
-                        selectedTextColor = AzulPrincipal,
-                        indicatorColor = AzulSecundario
-                    )
-                )
-            }
+        bottomBar = {
+            BarraNavegacion(
+                seleccionado = Destino.PERFIL,
+                onNavegar = { destino ->
+                    when (destino) {
+                        Destino.SERVICIOS -> onNavigateToServicios()
+                        Destino.DISPONIBILIDAD -> onNavigateToDisponibilidad()
+                        Destino.PERFIL -> Unit
+                    }
+                }
+            )
         },
-        containerColor = FondoPantalla // color gris claro de fondo
+        containerColor = FondoPantalla
     ) { paddingValores ->
 
 
-        // 3. CONTENIDO PRINCIPAL SCROLLABLE (LazyColumn)
+
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValores) // respeta márgenes del Scaffold (TopBar y BottomBar)
+                .padding(paddingValores)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp) // espaciado vertical entre cada ítem
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
 
-            // TARJETA PRINCIPAL DEL CONDUCTOR (Foto, Estado, Nombre y Métricas)
+
 
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp), // esquinas redondeadas
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
@@ -156,21 +147,21 @@ fun PerfilScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally // centra todo el contenido horizontalmente
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 
-                        // Badge "EN TURNO" (Ubicado en la esquina superior derecha)
+
                         Box(modifier = Modifier.fillMaxWidth()) {
                             Surface(
                                 color = VerdeFondoBadge,
                                 shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.align(Alignment.TopEnd) // alinea el indicador a la derecha
+                                modifier = Modifier.align(Alignment.TopEnd)
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // puntos indicadores verdes de estado activo
+
                                     Box(
                                         modifier = Modifier
                                             .size(6.dp)
@@ -187,34 +178,43 @@ fun PerfilScreen(
                             }
                         }
 
-                        // Foto de Perfil con Badge de Verificado
+
                         Box(
-                            contentAlignment = Alignment.BottomEnd, // el check verificado ubicado abajo a la derecha de la foto
+                            contentAlignment = Alignment.BottomEnd,
                             modifier = Modifier.size(90.dp)
                         ) {
-                            // círculo base de la foto de perfil (simulado)
+
                             Box(
                                 modifier = Modifier
                                     .size(90.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFCBD5E1)), // fondo gris temporal si no hay imagen
+                                    .background(Color(0xFFCBD5E1)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Foto Conductor",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(50.dp)
-                                )
+                                if (fotoUrl != null){
+                                    AsyncImage(
+                                        model = fotoUrl,
+                                        contentDescription = "Foto Conductor",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Foto Conductor",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(50.dp)
+                                    )
+                                }
                             }
 
-                            // Badge azul de cuenta verificada sobre la foto
+
                             Box(
                                 modifier = Modifier
                                     .size(26.dp)
                                     .clip(CircleShape)
                                     .background(AzulPrincipal)
-                                    .border(2.dp, Color.White, CircleShape), // Borde blanco alrededor de la estrella
+                                    .border(2.dp, Color.White, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -228,9 +228,9 @@ fun PerfilScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Nombre del Conductor
+
                         Text(
-                            text = "Matias Jeldres",
+                            text = nombreUsuario,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextoOscuro
@@ -238,7 +238,7 @@ fun PerfilScreen(
 
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        // Cargo u Ocupación Registrada
+
                         Surface(
                             color = AzulSecundario,
                             shape = RoundedCornerShape(20.dp)
@@ -265,9 +265,9 @@ fun PerfilScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // --- Cautro Bloques de Métricas (Calificación, Servicios, Puntualidad) ---
+
                         Surface(
-                            color = AzulSecundario.copy(alpha = 0.5f), // Fondo azul pastel traslúcido
+                            color = AzulSecundario.copy(alpha = 0.5f),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -275,10 +275,10 @@ fun PerfilScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly, // Distribuye los 3 bloques de forma equitativa
+                                horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Métrica 1: Calificación
+
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
@@ -291,19 +291,19 @@ fun PerfilScreen(
                                         Icon(
                                             imageVector = Icons.Default.Star,
                                             contentDescription = null,
-                                            tint = Color(0xFFEAB308), // Color amarillo para la estrella
+                                            tint = Color(0xFFEAB308),
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
                                     Text(
                                         text = "CALIFICACIÓN",
-                                        fontSize = 9.sp,
+                                        fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = TextoGris
                                     )
                                 }
 
-                                // línea divisora vertical entre métricas
+
                                 Box(
                                     modifier = Modifier
                                         .width(1.dp)
@@ -311,7 +311,7 @@ fun PerfilScreen(
                                         .background(TextoGris.copy(alpha = 0.3f))
                                 )
 
-                                // Métrica 2: Cantidad de Servicios
+
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = "142",
@@ -321,13 +321,13 @@ fun PerfilScreen(
                                     )
                                     Text(
                                         text = "SERVICIOS",
-                                        fontSize = 9.sp,
+                                        fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = TextoGris
                                     )
                                 }
 
-                                // Línea divisora vertical entre métricas
+
                                 Box(
                                     modifier = Modifier
                                         .width(1.dp)
@@ -335,7 +335,7 @@ fun PerfilScreen(
                                         .background(TextoGris.copy(alpha = 0.3f))
                                 )
 
-                                // Métrica 3: Puntualidad
+
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = "99.2%",
@@ -345,7 +345,7 @@ fun PerfilScreen(
                                     )
                                     Text(
                                         text = "PUNTUALIDAD",
-                                        fontSize = 9.sp,
+                                        fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = TextoGris
                                     )
@@ -357,7 +357,7 @@ fun PerfilScreen(
             }
 
 
-            // LISTA DE OPCIONES DEL MENÚ DE PERFIL
+
 
             item {
                 Card(
@@ -367,7 +367,7 @@ fun PerfilScreen(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
 
-                        // Opción 1: Editar datos de perfil
+
                         OpcionPerfilItem(
                             icono = Icons.Default.Badge,
                             titulo = "Editar datos de perfil",
@@ -375,60 +375,60 @@ fun PerfilScreen(
                             onClick = { }
                         )
 
-                        HorizontalDivider(color = FondoPantalla, thickness = 1.dp) // Separador gris tenue
+                        HorizontalDivider(color = FondoPantalla, thickness = 1.dp)
 
-                        // Opción 2: Historial completo de servicios
+
                         OpcionPerfilItem(
                             icono = Icons.Default.History,
-                            titulo = "Historial completo de serv...",
-                            subtitulo = "Expediciones y traslados fin...",
-                            badgeTexto = "Ver 142", // Muestra el total de servicios terminados
+                            titulo = "Historial de servicios",
+                            subtitulo = "Expediciones y traslados finalizados",
+                            badgeTexto = "Ver 142",
                             onClick = { }
                         )
 
                         HorizontalDivider(color = FondoPantalla, thickness = 1.dp)
 
-                        // Opción 3: Documentación y licencias
+
                         OpcionPerfilItem(
                             icono = Icons.Default.DirectionsCar,
                             titulo = "Documentación y licencias",
-                            subtitulo = "Mercedes-Benz Sprinter • Patent...",
+                            subtitulo = "Mercedes Sprinter • Patente KJ • 8821",
                             badgeTexto = "Al día",
-                            badgeColor = VerdeConfirmado, // Texto verde "Al día"
+                            badgeColor = VerdeConfirmado,
                             onClick = { }
                         )
 
                         HorizontalDivider(color = FondoPantalla, thickness = 1.dp)
 
-                        // Opción 4: Notificaciones y alertas
+
                         OpcionPerfilItem(
                             icono = Icons.Default.NotificationsNone,
                             titulo = "Notificaciones y alertas",
                             subtitulo = "Voz operativa, clima y cambios de ruta",
-                            onClick = { }
+                            onClick = onNavigateToNotificaciones
                         )
                     }
                 }
             }
 
 
-            // BOTÓN DE CERRAR SESIÓN
+
 
             item {
                 Button(
-                    onClick = { onCerrarSesion },
+                    onClick = { onCerrarSesion() },
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RojoRechazar, // fondo rosado suave (#FEE2E2)
-                        contentColor = RojoTextoRechazar // texto e icono rojo (#DC2626)
+                        containerColor = RojoRechazar,
+                        contentColor = RojoTextoRechazar
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Logout,
-                        contentDescription = "Cerrar Sesión",
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -441,7 +441,7 @@ fun PerfilScreen(
             }
 
 
-            // PIE DE PÁGINA (Información de la versión de la app)
+
 
             item {
                 Column(
@@ -457,7 +457,7 @@ fun PerfilScreen(
                         color = TextoGris
                     )
                     Text(
-                        text = "Southbound Operaciones Patagonia",
+                        text = "Proyecto académico DSY1105",
                         fontSize = 11.sp,
                         color = TextoGris
                     )
@@ -468,27 +468,20 @@ fun PerfilScreen(
     }
 }
 
-// =================================================================================================
-// COMPONENTES REUTILIZABLES INTERNOS
-// =================================================================================================
 
-/**
- * Función composable auxiliar para renderizar cada fila de opción en el menú de perfil.
- * Evita repetir código en las 4 opciones principales.
- */
 @Composable
 fun OpcionPerfilItem(
     icono: androidx.compose.ui.graphics.vector.ImageVector,
     titulo: String,
     subtitulo: String,
-    badgeTexto: String? = null, // parámetro opcional por si la opción lleva una etiqueta (ej: "Al día")
+    badgeTexto: String? = null,
     badgeColor: Color = AzulPrincipal,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable{onClick}
+            .clickable { onClick() }
             .padding(vertical = 8.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -497,7 +490,7 @@ fun OpcionPerfilItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            // contenedor cuadrado con bordes redondeados para el icono de la izquierda
+
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -515,7 +508,7 @@ fun OpcionPerfilItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Textos de Título y Subtítulo
+
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -525,7 +518,7 @@ fun OpcionPerfilItem(
                         color = TextoOscuro
                     )
 
-                    // Si la opción requiere un punto verde (Ej: Documentación)
+
                     if (badgeTexto == "Al día") {
                         Spacer(modifier = Modifier.width(6.dp))
                         Box(
@@ -544,7 +537,7 @@ fun OpcionPerfilItem(
             }
         }
 
-        // elementos en el extremo derecho (Badge opcional + Flecha de navegación)
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (badgeTexto != null) {
                 Surface(
@@ -562,7 +555,7 @@ fun OpcionPerfilItem(
                 Spacer(modifier = Modifier.width(8.dp))
             }
 
-            // Flecha indicadora 'chevron_right'
+
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Ir a",

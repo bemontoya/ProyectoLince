@@ -29,7 +29,7 @@ import com.example.proyectolince.ui.theme.*
 import kotlinx.coroutines.launch
 
 
-// Tipos de servicio : transfer, excursión o servicio guiado
+// tipos de servicio : transfer, excursión o servicio guiado
 enum class TipoServicio(val etiqueta: String) {
     TRANSFER("TRANSFER"),
     EXCURSION("EXCURSIÓN"),
@@ -136,13 +136,6 @@ fun ServiciosScreen(
         }
     }
 
-    // colores de la barra inferior
-    val coloresNav = NavigationBarItemDefaults.colors(
-        selectedIconColor = AzulPrincipal,
-        selectedTextColor = AzulPrincipal,
-        indicatorColor = AzulSecundario
-    )
-
     Scaffold(
         containerColor = FondoPantalla,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -165,38 +158,18 @@ fun ServiciosScreen(
             )
         },
 
+        // barra inferior compartida: es la misma en todas las pantallas
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = { Icon(Icons.Default.AltRoute, contentDescription = null) },
-                    label = { Text("Servicios", fontSize = 11.sp) },
-                    colors = coloresNav
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateToHistorial,
-                    icon = { Icon(Icons.Default.History, contentDescription = null) },
-                    label = { Text("Historial", fontSize = 11.sp) },
-                    colors = coloresNav
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateToDisponibilidad,
-                    icon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-                    label = { Text("Disponibilidad", fontSize = 11.sp) },
-                    colors = coloresNav
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateToPerfil,
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("Perfil", fontSize = 11.sp) },
-                    colors = coloresNav
-                )
-            }
+            BarraNavegacion(
+                seleccionado = Destino.SERVICIOS,
+                onNavegar = { destino ->
+                    when (destino) {
+                        Destino.SERVICIOS -> Unit
+                        Destino.DISPONIBILIDAD -> onNavigateToDisponibilidad()
+                        Destino.PERFIL -> onNavigateToPerfil()
+                    }
+                }
+            )
         }
     ) { paddingValues ->
 
@@ -218,7 +191,7 @@ fun ServiciosScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
 
-                        Text("Miércoles, 12 de octubre • Unidad LNC-402", fontSize = 12.sp, color = TextoGris)
+                        Text("Miércoles, 12 de octubre", fontSize = 12.sp, color = TextoGris)
                         Text("¡Hola, $nombreUsuario!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
                     }
                     Surface(color = AzulSecundario, shape = RoundedCornerShape(16.dp)) {

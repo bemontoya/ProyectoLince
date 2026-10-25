@@ -3,13 +3,7 @@ package com.example.proyectolince
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.proyectolince.ui.screens.ServiciosScreen
-import com.example.proyectolince.ui.screens.NotificacionesScreen
 import com.example.proyectolince.ui.theme.ProyectoLinceTheme
-import com.example.proyectolince.ui.screens.DisponibilidadScreen
-import com.example.proyectolince.ui.screens.DetalleScreen
-import com.example.proyectolince.ui.screens.PerfilScreen
-import com.example.proyectolince.ui.screens.LoginScreen
 import com.example.proyectolince.navigation.AppNavigation
 
 class MainActivity : ComponentActivity() {
