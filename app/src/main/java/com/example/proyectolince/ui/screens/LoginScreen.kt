@@ -3,9 +3,11 @@ package com.example.proyectolince.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
@@ -46,9 +48,8 @@ fun LoginScreen(
     loginViewModel: LoginViewModel = viewModel(),
     onLoginSuccess: (Rol) -> Unit = {}
 ) {
-
     val uiState by loginViewModel.uiState.collectAsState()
-
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -57,37 +58,40 @@ fun LoginScreen(
         }
     }
 
-    Scaffold(containerColor = FondoPantalla) { paddingValores ->
-        Column(
+    Scaffold(
+        containerColor = FondoPantalla,
+        modifier = Modifier.imePadding()
+    ) { paddingValores ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValores)
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
-
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
+
+                // Logo y Encabezado
                 Image(
                     painter = painterResource(id = R.drawable.logo_lince),
                     contentDescription = "Logo Southbound Field",
                     modifier = Modifier
-                        .size(72.dp)
+                        .size(64.dp)
                         .clip(RoundedCornerShape(16.dp))
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Southbound Field",
-                    fontSize = 26.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoOscuro
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -102,16 +106,10 @@ fun LoginScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
-            }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+                Spacer(modifier = Modifier.height(24.dp))
 
-
+                // Selector de Rol
                 Surface(
                     color = Color(0xFFE2E8F0).copy(alpha = 0.6f),
                     shape = RoundedCornerShape(12.dp),
@@ -131,8 +129,10 @@ fun LoginScreen(
                     }
                 }
 
-                // Campo correo
-                Column {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Campo Correo
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "CORREO",
                         fontSize = 11.sp,
@@ -161,8 +161,10 @@ fun LoginScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(14.dp))
 
-                Column {
+                // Campo Contraseña
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,7 +176,10 @@ fun LoginScreen(
                             fontWeight = FontWeight.Bold,
                             color = TextoGris
                         )
-                        TextButton(onClick = { }) {
+                        TextButton(
+                            onClick = { },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
                             Text(
                                 text = "¿Olvidaste tu contraseña?",
                                 fontSize = 12.sp,
@@ -213,9 +218,13 @@ fun LoginScreen(
                     )
                 }
 
-
+                // Mensaje de Error
                 uiState.mensajeError?.let { texto ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
                             Icons.Default.ErrorOutline,
                             contentDescription = null,
@@ -232,6 +241,10 @@ fun LoginScreen(
                 }
 
 
+                Spacer(modifier = Modifier.weight(1f, fill = false))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Botón Iniciar Sesión
                 Button(
                     onClick = { loginViewModel.iniciarSesion() },
                     shape = RoundedCornerShape(12.dp),
