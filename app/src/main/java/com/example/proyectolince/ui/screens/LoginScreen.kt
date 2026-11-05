@@ -36,11 +36,7 @@ enum class Rol(val etiqueta: String, val icono: ImageVector){
     COORDINADOR("Coordinador", Icons.Default.Hub)
 }
 
-data class UsuarioFicticio(
-    val correo: String,
-    val clave: String,
-    val rol: Rol
-)
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -246,27 +242,39 @@ fun LoginScreen(
 
                 // Botón Iniciar Sesión
                 Button(
-                    onClick = { loginViewModel.iniciarSesion() },
+                    onClick = {loginViewModel.iniciarSesion()},
+                    enabled = !uiState.isLoading,
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
-                ) {
-                    Text(
-                        text = "Iniciar sesión",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
+
+
+                ){
+                    if (uiState.isLoading){
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+
+                    } else {
+                        Text(
+                            text = "Iniciar sesión",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }

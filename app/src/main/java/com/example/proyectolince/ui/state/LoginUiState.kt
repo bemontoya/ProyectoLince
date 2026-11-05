@@ -8,6 +8,7 @@ data class LoginUiState(
     val rolSeleccionado: Rol = Rol.DRIVER,
     val isPasswordVisible: Boolean = false,
     val mensajeError: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val isLoading: Boolean = false
 )
 

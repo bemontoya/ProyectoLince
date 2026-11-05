@@ -2,25 +2,26 @@ package com.example.proyectolince.ui.viewmodel
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.proyectolince.data.AuthRepository
 import com.example.proyectolince.ui.screens.Rol
-import com.example.proyectolince.ui.screens.UsuarioFicticio
 import com.example.proyectolince.ui.state.LoginUiState
+import dev.insforge.exceptions.InsforgeHttpException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(
+    private val authRepository: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    // lista de usuarios demo
-    private val usuariosDemo = listOf(
-        UsuarioFicticio("driver01@demo.lince", "Lince2026", Rol.DRIVER),
-        UsuarioFicticio("guia01@demo.lince", "Lince2026", Rol.GUIA),
-        UsuarioFicticio("coord01@demo.lince", "Lince2026", Rol.COORDINADOR)
-    )
+
 
     fun onCorreoChanged(nuevoCorreo: String) {
         _uiState.update { currentState ->
@@ -55,42 +56,72 @@ class LoginViewModel : ViewModel() {
         }
     }
 
+
+    private fun mostrarError(mensaje: String) {
+        _uiState.update { it.copy(isLoading = false, mensajeError = mensaje) }
+    }
+
     fun iniciarSesion() {
         val state = _uiState.value
+
+        // si ya hay un intento en curso ignora el toque para evitar enviar la peticion 2 veces
+        if (state.isLoading) return
+
         val correoTrim = state.correo.trim()
 
-        // validaciones de correo y contraseña del login
+
         if (correoTrim.isBlank()) {
-            _uiState.update { it.copy(mensajeError = "Ingresa tu correo electrónico") }
+            mostrarError("Ingresa tu correo electrónico")
             return
         }
 
         if (!Patterns.EMAIL_ADDRESS.matcher(correoTrim).matches()) {
-            _uiState.update { it.copy(mensajeError = "El formato del correo no es válido") }
+            mostrarError("El formato del correo no es válido")
             return
         }
 
         if (state.clave.isBlank()) {
-            _uiState.update { it.copy(mensajeError = "Ingresa tu contraseña") }
+            mostrarError("Ingresa tu contraseña")
             return
         }
 
-        val usuario = usuariosDemo.find {
-            it.correo.equals(correoTrim, ignoreCase = true) && it.clave == state.clave
-        }
 
-        if (usuario == null) {
-            _uiState.update { it.copy(mensajeError = "Correo o contraseña incorrectos") }
-            return
-        }
+        _uiState.update { it.copy(isLoading = true, mensajeError = null) }
 
-        if (usuario.rol != state.rolSeleccionado) {
-            _uiState.update { it.copy(mensajeError = "Este usuario no tiene el rol ${state.rolSeleccionado.etiqueta}") }
-            return
-        }
 
-        // Login Exitoso
-        _uiState.update { it.copy(isSuccess = true, mensajeError = null) }
+        viewModelScope.launch {
+            try {
+
+                val rolReal = authRepository.iniciarSesion(correoTrim, state.clave)
+
+                when {
+                    rolReal == null -> {
+                        authRepository.cerrarSesion()
+                        mostrarError("Tu usuario no tiene un rol asignado")
+                    }
+                    rolReal != state.rolSeleccionado -> {
+                        authRepository.cerrarSesion()
+                        mostrarError("Este usuario no tiene el rol ${state.rolSeleccionado.etiqueta}")
+                    }
+                    // Login exitoso
+                    else -> _uiState.update {
+                        it.copy(isLoading = false, isSuccess = true, mensajeError = null)
+                    }
+                }
+            } catch (e: InsforgeHttpException) {
+                val mensaje = when (e.error) {
+                    "INVALID_CREDENTIALS", "USER_NOT_FOUND" -> "Correo o contraseña incorrectos"
+                    "EMAIL_NOT_VERIFIED" -> "Debes verificar tu correo antes de ingresar"
+                    "INVALID_EMAIL" -> "El formato del correo no es válido"
+                    else -> "No se pudo iniciar sesión: ${e.message}"
+                }
+                mostrarError(mensaje)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                mostrarError("No se pudo conectar. Revisa tu conexión a internet.")
+            }
+        }
     }
 
     fun resetSuccessState() {
