@@ -64,6 +64,11 @@ Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comun
 
 ---
 
+## Ejecución de tests
+```bash
+.\gradlew.bat testDebugUnitTest --tests "com.example.proyectolince.ExampleUnitTest"
+```
+
 ## Arquitectura y Estructura del Código
 
 El proyecto sigue una arquitectura limpia basada en **MVVM (Model-View-ViewModel)** y **Unidirectional Data Flow (UDF)** recomendada por Google:
@@ -82,3 +87,5 @@ com.example.proyectolince/
 │
 ├── MainActivity.kt          # Punto de entrada y gestión del NavHost de navegación
 └── BuildConfig             # Configuración de variables globales (API Keys locales)
+
+
