@@ -1,8 +1,12 @@
 package com.example.proyectolince.ui.screens
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.AltRoute
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
@@ -25,94 +30,108 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import com.example.proyectolince.BuildConfig
+import com.example.proyectolince.data.LocationHelper
+import com.example.proyectolince.data.network.WeatherRetrofitInstance
 import com.example.proyectolince.ui.theme.*
 import com.example.proyectolince.ui.viewmodel.DetalleViewModel
 import kotlinx.coroutines.launch
-import com.example.proyectolince.data.network.WeatherRetrofitInstance
-import com.example.proyectolince.BuildConfig
-
+import java.util.Locale
 
 private enum class FaseServicio { SIN_INICIAR, EN_CURSO, FINALIZADO }
-
-private data class DetalleServicio(
-    val codigo: String,
-    val fecha: String,
-    val hora: String,
-    val tipo: String,
-    val origen: String,
-    val origenReferencia: String,
-    val destino: String,
-    val destinoReferencia: String,
-    val duracion: String,
-    val distancia: String,
-    val ruta: String,
-    val pasajeros: Int,
-    val grupo: String,
-    val contacto: String,
-    val telefonoContacto: String,
-    val vehiculo: String,
-    val capacidad: String,
-    val patente: String
-)
-
-private val detalleDemo = DetalleServicio(
-    codigo = "#SRV-001",
-    fecha = "Miércoles, 12 de octubre",
-    hora = "08:30",
-    tipo = "TRANSFER PRIVADO",
-    origen = "Hotel Cumbres Puerto Varas",
-    origenReferencia = "Lobby principal",
-    destino = "Aeropuerto El Tepual (Puerto Montt)",
-    destinoReferencia = "Terminal salidas nacionales",
-    duracion = "35 min",
-    distancia = "28 km",
-    ruta = "Vía Ruta 225 y V-505",
-    pasajeros = 4,
-    grupo = "Grupo de prueba",
-    contacto = "Titular demo",
-    telefonoContacto = "+56912345678",
-    vehiculo = "Mercedes Sprinter",
-    capacidad = "Capacidad 12 + 1",
-    patente = "KJ • 8821"
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleScreen(
+    servicioId: String,
     inicialUsuario: String = "D",
     viewModel: DetalleViewModel,
     onVolver: () -> Unit = {},
     onNavigateToServicios: () -> Unit = {},
-    onNavigateToHistorial: () -> Unit = {},
     onNavigateToDisponibilidad: () -> Unit = {},
     onNavigateToNotificaciones: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {}
 ) {
-    val detalle = detalleDemo
     val contexto = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var temperatura by remember { mutableStateOf<String?>(null) }
     var condicion by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        try {
-            val clima = WeatherRetrofitInstance.api.obtenerClima("Puerto Montt", BuildConfig.OPENWEATHER_API_KEY)
-            temperatura = "${clima.main.temp.toInt()}°C"
-            condicion = clima.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }
-        } catch (e: Exception){
-            temperatura = "14°C"
-            condicion = "Parcialmente nublado (Offline)"
+    val servicio by viewModel.servicio.collectAsState()
+    val errorServicio by viewModel.errorServicio.collectAsState()
+    val estadoGps by viewModel.estadoGps.collectAsState()
+
+    val codigoMostrar = servicio?.codigo ?: servicioId
+    val horaMostrar = servicio?.horaPickup ?: "--:--"
+    val fechaMostrar = servicio?.fecha ?: ""
+    val tipoMostrar = servicio?.tipo ?: "SERVICIO"
+    val origenMostrar = servicio?.pickup ?: "Sin punto de origen"
+    val origenRefMostrar = servicio?.notas ?: "Punto de recogida"
+    val destinoMostrar = servicio?.dropoff ?: "Sin punto de destino"
+    val destinoRefMostrar = servicio?.descripcionPadre ?: "Destino final"
+    val grupoMostrar = servicio?.cliente?.nombre ?: "Cliente sin asignar"
+    val paxTotal = servicio?.pax?.total ?: 0
+    val contactoMostrar = servicio?.reserva?.referencia ?: "Sin referencia"
+    val staffNombre = servicio?.transportista?.nombre ?: servicio?.guia?.nombre ?: "Sin asignar"
+    val staffId = servicio?.transportista?.id ?: servicio?.guia?.id ?: "N/A"
+
+    fun refrescarGps() {
+        val tienePermiso = ContextCompat.checkSelfPermission(
+            contexto, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (tienePermiso) {
+            scope.launch {
+                val snap = LocationHelper.obtenerUbicacionActual(contexto)
+                viewModel.actualizarPosicionGps(snap)
+            }
         }
     }
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { perms ->
+        if (perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        ) {
+            refrescarGps()
+        }
+    }
 
-    LaunchedEffect(detalle.codigo) {
-        viewModel.cargarRegistroServicio(detalle.codigo)
+    LaunchedEffect(servicioId) {
+        viewModel.cargarServicioYRegistro(servicioId)
+
+        val tienePermiso = ContextCompat.checkSelfPermission(
+            contexto, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (tienePermiso) {
+            refrescarGps()
+        } else {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    LaunchedEffect(destinoMostrar) {
+        if (destinoMostrar != "Sin punto de destino") {
+            try {
+                val clima = WeatherRetrofitInstance.api.obtenerClima(destinoMostrar, BuildConfig.OPENWEATHER_API_KEY)
+                temperatura = "${clima.main.temp.toInt()}°C"
+                condicion = clima.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }
+            } catch (_: Exception) {
+                temperatura = "--"
+                condicion = "Sin datos de clima"
+            }
+        }
     }
 
     val registroActual by viewModel.registroActual.collectAsState()
-
 
     val fase = when {
         registroActual?.horaCheckOut != null -> FaseServicio.FINALIZADO
@@ -128,23 +147,12 @@ fun DetalleScreen(
         observacionesText = registroActual?.observaciones.orEmpty()
     }
 
-
     fun abrirMapa() {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(detalle.destino)))
+        val intent = Intent(Intent.ACTION_VIEW, ("geo:0,0?q=" + Uri.encode(destinoMostrar)).toUri())
         try {
             contexto.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
+        } catch (_: ActivityNotFoundException) {
             scope.launch { snackbarHostState.showSnackbar("No hay una app de mapas instalada") }
-        }
-    }
-
-
-    fun realizarLlamada() {
-        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${detalle.telefonoContacto}"))
-        try {
-            contexto.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            scope.launch { snackbarHostState.showSnackbar("No se puede realizar la llamada") }
         }
     }
 
@@ -196,19 +204,41 @@ fun DetalleScreen(
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
                         when (fase) {
                             FaseServicio.SIN_INICIAR -> BotonPrincipal(
-                                texto = "REGISTRAR CHECK-IN",
+                                texto = "REGISTRAR CHECK-IN GPS",
                                 icono = Icons.Default.HowToReg,
                                 onClick = {
-                                    viewModel.registrarCheckIn(detalle.codigo)
-                                    scope.launch { snackbarHostState.showSnackbar("Check-in guardado en Room") }
+                                    scope.launch {
+                                        val snap = LocationHelper.obtenerUbicacionActual(contexto) ?: estadoGps.gpsActual
+                                        viewModel.actualizarPosicionGps(snap)
+                                        viewModel.registrarCheckInConGps(
+                                            context = contexto,
+                                            codigoServicio = codigoMostrar,
+                                            nombreLugar = origenMostrar,
+                                            horaPickupProgramada = horaMostrar,
+                                            gps = snap
+                                        ) { mensaje ->
+                                            scope.launch { snackbarHostState.showSnackbar(mensaje) }
+                                        }
+                                    }
                                 }
                             )
                             FaseServicio.EN_CURSO -> BotonPrincipal(
-                                texto = "REGISTRAR CHECK-OUT",
+                                texto = "REGISTRAR CHECK-OUT GPS",
                                 icono = Icons.AutoMirrored.Filled.ExitToApp,
                                 onClick = {
-                                    viewModel.registrarCheckOut(detalle.codigo, observacionesText)
-                                    scope.launch { snackbarHostState.showSnackbar("Check-out guardado en Room") }
+                                    scope.launch {
+                                        val snap = LocationHelper.obtenerUbicacionActual(contexto) ?: estadoGps.gpsActual
+                                        viewModel.actualizarPosicionGps(snap)
+                                        viewModel.registrarCheckOutConGps(
+                                            context = contexto,
+                                            codigoServicio = codigoMostrar,
+                                            nombreLugarDestino = destinoMostrar,
+                                            observaciones = observacionesText,
+                                            gps = snap
+                                        ) { mensaje ->
+                                            scope.launch { snackbarHostState.showSnackbar(mensaje) }
+                                        }
+                                    }
                                 }
                             )
                             FaseServicio.FINALIZADO -> Surface(
@@ -233,7 +263,7 @@ fun DetalleScreen(
                     NavigationBarItem(
                         selected = true,
                         onClick = onNavigateToServicios,
-                        icon = { Icon(Icons.Default.AltRoute, contentDescription = null) },
+                        icon = { Icon(Icons.AutoMirrored.Filled.AltRoute, contentDescription = null) },
                         label = { Text("Servicios", fontSize = 11.sp) },
                         colors = coloresNav
                     )
@@ -275,7 +305,7 @@ fun DetalleScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(detalle.codigo, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+                        Text(codigoMostrar, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoGris)
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(color = badgeFase.second, shape = RoundedCornerShape(16.dp)) {
                             Row(
@@ -286,6 +316,85 @@ fun DetalleScreen(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(badgeFase.first, fontSize = 11.sp, color = badgeFase.third, fontWeight = FontWeight.Bold)
                             }
+                        }
+                    }
+                }
+            }
+
+            errorServicio?.let { msgError ->
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEE2E2)),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "API Lince: $msgError",
+                            fontSize = 12.sp,
+                            color = Color(0xFFB91C1C),
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
+            }
+
+            // Tarjeta de Geocerca y GPS en tiempo real
+            item {
+                val distText = estadoGps.distanciaMetros?.let { String.format(Locale.US, "%.0f m", it) } ?: "Calculando..."
+                val colorGeo = if (estadoGps.dentroDeRadio) VerdeConfirmado else Color(0xFFD97706)
+                val bgGeo = if (estadoGps.dentroDeRadio) VerdeFondoBadge else Color(0xFFFEF3C7)
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            EtiquetaSeccion(Icons.Default.MyLocation, "GEOCERCA PICKUP (RADIO 150M)")
+                            TextButton(onClick = { refrescarGps() }, contentPadding = PaddingValues(0.dp)) {
+                                Text("Actualizar GPS", fontSize = 12.sp, color = AzulPrincipal, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = estadoGps.gpsActual?.let {
+                                        String.format(Locale.US, "GPS: %.4f, %.4f (±%.0fm)", it.latitud, it.longitud, it.precisionMetros)
+                                    } ?: "GPS: Esperando señal...",
+                                    fontSize = 12.sp,
+                                    color = TextoOscuro,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = "Distancia al punto: $distText",
+                                    fontSize = 12.sp,
+                                    color = TextoGris
+                                )
+                            }
+                            Surface(color = bgGeo, shape = RoundedCornerShape(12.dp)) {
+                                Text(
+                                    text = if (estadoGps.dentroDeRadio) "EN ZONA" else "FUERA DE RADIO",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorGeo,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                        estadoGps.mensajeValidacion?.let { msg ->
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(msg, fontSize = 12.sp, color = AzulPrincipal, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -304,12 +413,12 @@ fun DetalleScreen(
                             verticalAlignment = Alignment.Top
                         ) {
                             Column {
-                                Text(detalle.hora, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
-                                Text(detalle.fecha, fontSize = 12.sp, color = TextoGris)
+                                Text(horaMostrar, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                                Text(fechaMostrar, fontSize = 12.sp, color = TextoGris)
                             }
                             Surface(color = AzulSecundario, shape = RoundedCornerShape(12.dp)) {
                                 Text(
-                                    detalle.tipo,
+                                    tipoMostrar,
                                     fontSize = 11.sp,
                                     color = AzulPrincipal,
                                     fontWeight = FontWeight.Bold,
@@ -320,51 +429,30 @@ fun DetalleScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(IntrinsicSize.Min)
                         ) {
-
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.padding(top = 4.dp, end = 12.dp)
                             ) {
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .background(AzulPrincipal, CircleShape)
-                                )
-
-
-                                Box(
-                                    modifier = Modifier
-                                        .width(2.dp)
-                                        .weight(1f)
-                                        .background(VerdeConfirmado)
-                                )
-
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .background(VerdeConfirmado, CircleShape)
-                                )
+                                Box(modifier = Modifier.size(12.dp).background(AzulPrincipal, CircleShape))
+                                Box(modifier = Modifier.width(2.dp).weight(1f).background(VerdeConfirmado))
+                                Box(modifier = Modifier.size(12.dp).background(VerdeConfirmado, CircleShape))
                             }
-
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("ORIGEN", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
-                                Text(detalle.origen, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
-                                Text(detalle.origenReferencia, fontSize = 12.sp, color = TextoGris)
+                                Text(origenMostrar, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                                Text(origenRefMostrar, fontSize = 12.sp, color = TextoGris)
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 Text("DESTINO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
-                                Text(detalle.destino, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
-                                Text(detalle.destinoReferencia, fontSize = 12.sp, color = TextoGris)
+                                Text(destinoMostrar, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                                Text(destinoRefMostrar, fontSize = 12.sp, color = TextoGris)
                             }
                         }
                     }
@@ -372,27 +460,23 @@ fun DetalleScreen(
             }
 
             item {
-
                 Card(
                     colors = CardDefaults.cardColors(containerColor = AzulSecundario),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
-
-                ){
+                ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
                         Icon(Icons.Default.WbSunny, contentDescription = null, tint = AzulPrincipal)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Column{
-                            Text("Clima en ruta / Aeropuerto Tepual", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AzulPrincipal)
-                            Text("${temperatura ?: "--"} • ${condicion ?: "Cargando..."}", fontSize = 13.sp, color = TextoOscuro )
+                        Column {
+                            Text("Clima en destino / $destinoMostrar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AzulPrincipal)
+                            Text("${temperatura ?: "--"} · ${condicion ?: "Cargando..."}", fontSize = 13.sp, color = TextoOscuro)
                         }
-
                     }
                 }
-
             }
 
             item {
@@ -405,11 +489,11 @@ fun DetalleScreen(
                         Column(modifier = Modifier.padding(14.dp)) {
                             EtiquetaSeccion(Icons.Default.Group, "PASAJEROS")
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(detalle.grupo, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                            Text(grupoMostrar, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
                             Spacer(modifier = Modifier.height(4.dp))
                             Surface(color = FondoPantalla, shape = RoundedCornerShape(6.dp)) {
                                 Text(
-                                    "${detalle.pasajeros} pax",
+                                    "$paxTotal pax",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextoGris,
@@ -419,29 +503,8 @@ fun DetalleScreen(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            Text("CONTACTO TITULAR", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
-                            Text(detalle.contacto, fontSize = 12.sp, color = TextoOscuro)
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Surface(
-                                color = VerdeFondoBadge,
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { realizarLlamada() }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.Phone, contentDescription = null, tint = VerdeConfirmado, modifier = Modifier.size(14.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Llamar", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = VerdeConfirmado)
-                                }
-                            }
+                            Text("RESERVA", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+                            Text(contactoMostrar, fontSize = 12.sp, color = TextoOscuro)
                         }
                     }
 
@@ -451,14 +514,14 @@ fun DetalleScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
-                            EtiquetaSeccion(Icons.Default.DirectionsCar, "VEHÍCULO")
+                            EtiquetaSeccion(Icons.Default.DirectionsCar, "RECURSO ASIGNADO")
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(detalle.vehiculo, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
-                            Text(detalle.capacidad, fontSize = 11.sp, color = TextoGris)
+                            Text(staffNombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                            Text(servicio?.descripcion ?: "Sin descripción", fontSize = 11.sp, color = TextoGris)
 
                             Spacer(modifier = Modifier.height(18.dp))
 
-                            Text("PATENTE ASIGNADA", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+                            Text("ID RECURSO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Box(
@@ -469,7 +532,7 @@ fun DetalleScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(modifier = Modifier.size(6.dp).background(AzulPrincipal, CircleShape))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text(detalle.patente, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                                    Text(staffId, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
                                 }
                             }
                         }
@@ -492,7 +555,7 @@ fun DetalleScreen(
                             HorizontalDivider(color = Color(0xFFE2E8F0))
                             FilaRegistro(
                                 "Check-out",
-                                if (horaCheckOut.isBlank()) "Pendiente" else horaCheckOut,
+                                horaCheckOut.ifBlank { "Pendiente" },
                                 if (horaCheckOut.isBlank()) TextoGris else TextoOscuro
                             )
 

@@ -17,4 +17,10 @@ interface RegistroDao {
 
     @Query("SELECT * FROM registros_operacionales WHERE codigoServicio = :codigo LIMIT 1")
     suspend fun obtenerRegistroPorServicio(codigo: String): RegistroOperacional?
+
+    @Query("SELECT * FROM registros_operacionales WHERE sincronizado = 0")
+    suspend fun obtenerPendientesSincronizacion(): List<RegistroOperacional>
+
+    @Query("UPDATE registros_operacionales SET sincronizado = 1 WHERE id = :id")
+    suspend fun marcarComoSincronizado(id: Int)
 }

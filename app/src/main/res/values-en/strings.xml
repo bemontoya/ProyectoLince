@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Southbound Field</string>
+    <string name="nav_servicios">Services</string>
+    <string name="nav_disponibilidad">Availability</string>
+    <string name="nav_perfil">Profile</string>
+    <string name="titulo_detalle">Service Detail</string>
+    <string name="btn_volver">Back</string>
+    <string name="btn_checkin_gps">REGISTER GPS CHECK-IN</string>
+    <string name="btn_checkout_gps">REGISTER GPS CHECK-OUT</string>
+    <string name="estado_finalizado">SERVICE COMPLETED</string>
+    <string name="geocerca_titulo">PICKUP GEOFENCE (150M RADIUS)</string>
+    <string name="geocerca_en_zona">IN ZONE</string>
+    <string name="geocerca_fuera_radio">OUT OF RADIUS</string>
+    <string name="btn_actualizar_gps">Refresh GPS</string>
+    <string name="btn_abrir_mapa">Open in Waze / Google Maps</string>
+</resources>

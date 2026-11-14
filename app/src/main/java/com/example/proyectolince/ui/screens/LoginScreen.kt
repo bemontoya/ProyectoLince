@@ -41,16 +41,16 @@ enum class Rol(val etiqueta: String, val icono: ImageVector){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    loginViewModel: LoginViewModel = viewModel(),
+    viewModel: LoginViewModel = viewModel(),
     onLoginSuccess: (Rol) -> Unit = {}
 ) {
-    val uiState by loginViewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             onLoginSuccess(uiState.rolSeleccionado)
-            loginViewModel.resetSuccessState()
+            viewModel.resetSuccessState()
         }
     }
 
@@ -119,7 +119,7 @@ fun LoginScreen(
                             RolTab(
                                 rol = rol,
                                 seleccionado = uiState.rolSeleccionado == rol,
-                                onClick = { loginViewModel.onRolSelected(rol) }
+                                onClick = { viewModel.onRolSelected(rol) }
                             )
                         }
                     }
@@ -138,7 +138,7 @@ fun LoginScreen(
                     )
                     OutlinedTextField(
                         value = uiState.correo,
-                        onValueChange = { loginViewModel.onCorreoChanged(it) },
+                        onValueChange = { viewModel.onCorreoChanged(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         placeholder = { Text("driver01@demo.lince", color = TextoGris) },
@@ -186,14 +186,14 @@ fun LoginScreen(
                     }
                     OutlinedTextField(
                         value = uiState.clave,
-                        onValueChange = { loginViewModel.onClaveChanged(it) },
+                        onValueChange = { viewModel.onClaveChanged(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         leadingIcon = {
                             Icon(Icons.Default.Lock, contentDescription = null, tint = TextoGris)
                         },
                         trailingIcon = {
-                            IconButton(onClick = { loginViewModel.togglePasswordVisibility() }) {
+                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                                 Icon(
                                     imageVector = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = if (uiState.isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
@@ -242,7 +242,7 @@ fun LoginScreen(
 
                 // Botón Iniciar Sesión
                 Button(
-                    onClick = {loginViewModel.iniciarSesion()},
+                    onClick = {viewModel.iniciarSesion()},
                     enabled = !uiState.isLoading,
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),

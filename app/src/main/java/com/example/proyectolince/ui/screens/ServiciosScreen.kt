@@ -1,6 +1,5 @@
 package com.example.proyectolince.ui.screens
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -24,66 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.proyectolince.R
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.proyectolince.data.EstadoServicio
+import com.example.proyectolince.data.Servicio
+import com.example.proyectolince.data.TipoServicio
 import com.example.proyectolince.ui.theme.*
+import com.example.proyectolince.viewmodel.ServiciosViewModel
 import kotlinx.coroutines.launch
 
-
-// tipos de servicio : transfer, excursión o servicio guiado
-enum class TipoServicio(val etiqueta: String) {
-    TRANSFER("TRANSFER"),
-    EXCURSION("EXCURSIÓN"),
-    GUIADO("GUIADO")
-}
-
-
-enum class EstadoServicio(val etiqueta: String) {
-    PENDIENTE("PENDIENTE"),
-    CONFIRMADO("CONFIRMADO"),
-    RECHAZADO("RECHAZADO"),
-    MODIFICADO("MODIFICADO"),
-    FINALIZADO("FINALIZADO")
-}
-
-// Una "ficha" con todos los datos de un servicio (RF02: fecha, hora, pickup, tipo y estado).
-// Antes cada tarjeta tenía sus textos escritos a mano; ahora salen de esta ficha.
-data class Servicio(
-    val id: Int,
-    val tipo: TipoServicio,
-    val estado: EstadoServicio,
-    val fecha: String,
-    val hora: String,
-    val titulo: String,
-    val referencia: String,          // pickup o punto de encuentro
-    val pasajeros: Int,
-    val motivoRechazo: String? = null, //será null si no fue rechazado
-    @DrawableRes val imagen: Int? = null
-)
-
-// datos ficticios de prueba
-private val serviciosDemo = listOf(
-    Servicio(
-        id = 1, tipo = TipoServicio.TRANSFER, estado = EstadoServicio.PENDIENTE,
-        fecha = "12 Oct", hora = "08:30",
-        titulo = "Pickup Hotel Cumbres → Aeropuerto El Tepual",
-        referencia = "Vuelo LATAM LA-072 (salida 10:45)", pasajeros = 4
-    ),
-    Servicio(
-        id = 2, tipo = TipoServicio.EXCURSION, estado = EstadoServicio.CONFIRMADO,
-        fecha = "14 Oct", hora = "09:00",
-        titulo = "Tour Volcán Osorno y Frutillar",
-        referencia = "Plaza de Armas Pto. Varas (frente a iglesia)", pasajeros = 14,
-        imagen = R.drawable.volcan_osorno
-    ),
-    Servicio(
-        id = 3, tipo = TipoServicio.TRANSFER, estado = EstadoServicio.CONFIRMADO,
-        fecha = "15 Oct", hora = "16:30",
-        titulo = "Drop-off Hotel AWA → Centro Pto. Varas",
-        referencia = "Servicio privado de retorno", pasajeros = 2
-    )
-)
-
-// texto más estado que filtran (null = mostrar todos)
 private val opcionesFiltro = listOf<Pair<String, EstadoServicio?>>(
     "Todos" to null,
     "Pendientes" to EstadoServicio.PENDIENTE,
@@ -101,46 +48,38 @@ private fun coloresDe(estado: EstadoServicio): ColoresEstado = when (estado) {
     EstadoServicio.FINALIZADO -> ColoresEstado(TextoGris, Color(0xFFE2E8F0), TextoGris)
 }
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServiciosScreen(
     nombreUsuario: String = "Driver Demo",
-    onNavigateToDetalle: () -> Unit = {},
+    rolUsuario: String = "DRIVER",
+    idUsuario: String? = null,
+    viewModel: ServiciosViewModel = viewModel(),
+    onNavigateToDetalle: (String) -> Unit = {},
     onNavigateToHistorial: () -> Unit = {},
     onNavigateToDisponibilidad: () -> Unit = {},
     onNavigateToNotificaciones: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {}
 ) {
-    // mutableStateListOf  si cambias un elemento, la pantalla se redibuja sola
-    val servicios = remember { mutableStateListOf<Servicio>().apply { addAll(serviciosDemo) } }
-    // filtro activo para que no se pierda al hacer scroll.
+    val uiState by viewModel.uiState.collectAsState()
     var filtro by remember { mutableStateOf<EstadoServicio?>(null) }
-    // servicio que el usuario quiere rechazar (si no es null, se muestra el diálogo del motivo)
     var servicioARechazar by remember { mutableStateOf<Servicio?>(null) }
-    // para mostrar mensaje abajo
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(rolUsuario, idUsuario) {
+        viewModel.cargarServiciosPorRol(rolUsuario = rolUsuario, idUsuario = idUsuario)
+    }
+
+    val servicios = uiState.servicios
     val filtroActual = filtro
     val serviciosFiltrados =
-        if (filtroActual == null) servicios.toList()
+        if (filtroActual == null) servicios
         else servicios.filter { it.estado == filtroActual }
-
-    // cambia el estado de un servicio
-    fun actualizarServicio(id: Int, nuevoEstado: EstadoServicio, motivo: String? = null) {
-        val posicion = servicios.indexOfFirst { it.id == id }
-        if (posicion >= 0) {
-            servicios[posicion] = servicios[posicion].copy(estado = nuevoEstado, motivoRechazo = motivo)
-        }
-    }
 
     Scaffold(
         containerColor = FondoPantalla,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-
-
         topBar = {
             TopAppBar(
                 title = {
@@ -150,6 +89,9 @@ fun ServiciosScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario) }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = TextoOscuro)
+                    }
                     IconButton(onClick = onNavigateToNotificaciones) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
                     }
@@ -157,8 +99,6 @@ fun ServiciosScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoPantalla)
             )
         },
-
-        // barra inferior compartida: es la misma en todas las pantallas
         bottomBar = {
             BarraNavegacion(
                 seleccionado = Destino.SERVICIOS,
@@ -172,8 +112,6 @@ fun ServiciosScreen(
             )
         }
     ) { paddingValues ->
-
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -181,8 +119,6 @@ fun ServiciosScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -190,13 +126,12 @@ fun ServiciosScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-
-                        Text("Miércoles, 12 de octubre", fontSize = 12.sp, color = TextoGris)
+                        Text("Operación en terreno", fontSize = 12.sp, color = TextoGris)
                         Text("¡Hola, $nombreUsuario!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
                     }
                     Surface(color = AzulSecundario, shape = RoundedCornerShape(16.dp)) {
                         Text(
-                            "Modo demo",
+                            rolUsuario.uppercase(),
                             color = AzulPrincipal,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -206,13 +141,11 @@ fun ServiciosScreen(
                 }
             }
 
-
             item {
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-
                     opcionesFiltro.forEach { (nombre, estado) ->
                         val cantidad = if (estado == null) servicios.size else servicios.count { it.estado == estado }
                         FilterChip(
@@ -229,28 +162,67 @@ fun ServiciosScreen(
                 }
             }
 
-            if (serviciosFiltrados.isEmpty()) {
+            if (uiState.isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = AzulPrincipal)
+                    }
+                }
+            } else if (uiState.errorMessage != null) {
+                item {
+                    Surface(
+                        color = RojoRechazar,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Error al cargar servicios",
+                                fontWeight = FontWeight.Bold,
+                                color = RojoTextoRechazar,
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                uiState.errorMessage ?: "Error desconocido",
+                                color = RojoTextoRechazar,
+                                fontSize = 12.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario) }) {
+                                Text("Reintentar", color = RojoTextoRechazar, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            } else if (serviciosFiltrados.isEmpty()) {
                 item {
                     Text(
-                        "No hay servicios con este estado.",
+                        "No hay servicios asignados para este filtro.",
                         fontSize = 13.sp,
                         color = TextoGris,
                         modifier = Modifier.padding(vertical = 24.dp)
                     )
                 }
-            }
-
-            items(serviciosFiltrados, key = { it.id }) { servicio ->
-                ServicioCard(
-                    servicio = servicio,
-                    onClick = onNavigateToDetalle, // tocar la tarjeta abre el detalle
-                    onConfirmar = {
-                        actualizarServicio(servicio.id, EstadoServicio.CONFIRMADO)
-                        scope.launch { snackbarHostState.showSnackbar("Servicio confirmado") }
-                    },
-                    onRechazar = { servicioARechazar = servicio },
-                    onCheckIn = onNavigateToDetalle
-                )
+            } else {
+                items(serviciosFiltrados, key = { it.id }) { servicio ->
+                    ServicioCard(
+                        servicio = servicio,
+                        rolUsuario = rolUsuario,
+                        onClick = { onNavigateToDetalle(servicio.id) },
+                        onConfirmar = {
+                            viewModel.actualizarEstadoLocal(servicio.id, EstadoServicio.CONFIRMADO)
+                            scope.launch { snackbarHostState.showSnackbar("Servicio confirmado") }
+                        },
+                        onRechazar = { servicioARechazar = servicio },
+                        onCheckIn = { onNavigateToDetalle(servicio.id) }
+                    )
+                }
             }
 
             item {
@@ -272,7 +244,7 @@ fun ServiciosScreen(
                                 Text("Contacta a Despacho central", fontSize = 11.sp, color = TextoGris)
                             }
                         }
-                        IconButton(onClick = {  }) {
+                        IconButton(onClick = { }) {
                             Icon(Icons.Default.Phone, contentDescription = "Llamar a despacho", tint = AzulPrincipal)
                         }
                     }
@@ -282,12 +254,11 @@ fun ServiciosScreen(
         }
     }
 
-    // diálogo del motivo de rechazo, solo se muestra si servicioARechazar no es null.
     servicioARechazar?.let { servicio ->
         MotivoRechazoDialog(
             onConfirmar = { motivo ->
-                actualizarServicio(servicio.id, EstadoServicio.RECHAZADO, motivo)
-                servicioARechazar = null // null = cerrar el diálogo
+                viewModel.actualizarEstadoLocal(servicio.id, EstadoServicio.RECHAZADO, motivo)
+                servicioARechazar = null
                 scope.launch { snackbarHostState.showSnackbar("Servicio rechazado") }
             },
             onCancelar = { servicioARechazar = null }
@@ -299,12 +270,15 @@ fun ServiciosScreen(
 @Composable
 private fun ServicioCard(
     servicio: Servicio,
+    rolUsuario: String,
     onClick: () -> Unit,
     onConfirmar: () -> Unit,
     onRechazar: () -> Unit,
     onCheckIn: () -> Unit
 ) {
     val colores = coloresDe(servicio.estado)
+    val esCoordinador = rolUsuario.equals("COORDINADOR", ignoreCase = true)
+    val esGuia = rolUsuario.equals("GUIA", ignoreCase = true)
 
     Card(
         onClick = onClick,
@@ -313,7 +287,6 @@ private fun ServicioCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-
             Box(
                 modifier = Modifier
                     .width(5.dp)
@@ -322,7 +295,6 @@ private fun ServicioCard(
             )
 
             Column(modifier = Modifier.weight(1f).padding(14.dp)) {
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -334,7 +306,7 @@ private fun ServicioCard(
                         modifier = Modifier.weight(1f, fill = false)
                     ) {
                         Text(
-                            "• ${servicio.tipo.etiqueta} • ${servicio.estado.etiqueta}",
+                            "• ${servicio.tipo.etiqueta} ${servicio.estado.etiqueta}",
                             color = colores.textoBadge,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -407,37 +379,49 @@ private fun ServicioCard(
                     Text("${servicio.pasajeros} pax", fontSize = 12.sp, color = TextoGris)
                 }
 
-                when (servicio.estado) {
+                if (esCoordinador) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    val asignacion = buildString {
+                        append("Transp: ${servicio.transportistaId ?: "Sin asignar"}")
+                        if (servicio.tipo != TipoServicio.TRANSFER) {
+                            append(" • Guía: ${servicio.guiaId ?: "Sin asignar"}")
+                        }
+                    }
+                    Text(asignacion, fontSize = 11.sp, color = AzulPrincipal, fontWeight = FontWeight.SemiBold)
+                }
 
+                when (servicio.estado) {
                     EstadoServicio.PENDIENTE -> {
-                        Spacer(modifier = Modifier.height(14.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
-                                onClick = onConfirmar,
-                                colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal, contentColor = Color.White),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.weight(1f).height(48.dp)
-                            ) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Confirmar", fontSize = 13.sp)
-                            }
-                            Button(
-                                onClick = onRechazar,
-                                colors = ButtonDefaults.buttonColors(containerColor = RojoRechazar, contentColor = RojoTextoRechazar),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.weight(1f).height(48.dp)
-                            ) {
-                                Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Rechazar", fontSize = 13.sp)
+                        if (!esCoordinador) {
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(
+                                    onClick = onConfirmar,
+                                    colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal, contentColor = Color.White),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.weight(1f).height(48.dp)
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Confirmar", fontSize = 13.sp)
+                                }
+                                Button(
+                                    onClick = onRechazar,
+                                    colors = ButtonDefaults.buttonColors(containerColor = RojoRechazar, contentColor = RojoTextoRechazar),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.weight(1f).height(48.dp)
+                                ) {
+                                    Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Rechazar", fontSize = 13.sp)
+                                }
                             }
                         }
                     }
 
                     EstadoServicio.CONFIRMADO -> {
                         Spacer(modifier = Modifier.height(14.dp))
-                        if (servicio.tipo == TipoServicio.EXCURSION) {
+                        if (esGuia && (servicio.tipo == TipoServicio.EXCURSION || servicio.tipo == TipoServicio.GUIADO)) {
                             Button(
                                 onClick = onCheckIn,
                                 colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal, contentColor = Color.White),
@@ -487,7 +471,7 @@ private fun MotivoRechazoDialog(
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
-        onDismissRequest = onCancelar, // tocar fuera del diálogo = cancelar
+        onDismissRequest = onCancelar,
         title = { Text("Rechazar servicio") },
         text = {
             Column {

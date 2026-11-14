@@ -1,31 +1,68 @@
 package com.example.proyectolince.data
 
-import com.example.proyectolince.data.network.InsforgeProvider
+import com.example.proyectolince.data.network.InsForgeLoginRequest
+import com.example.proyectolince.data.network.InsForgeRetrofitInstance
 import com.example.proyectolince.ui.screens.Rol
-import dev.insforge.auth.auth
 
-
-class AuthRepository {
-
-    private val rolesTemporales = mapOf(
-        "driver01@demo.lince" to Rol.DRIVER,
-        "guia01@demo.lince" to Rol.GUIA,
-        "coord01@demo.lince" to Rol.COORDINADOR
-    )
-
+class AuthRepository(
+    private val sessionManager: SessionManager? = null
+) {
 
     suspend fun iniciarSesion(correo: String, clave: String): Rol? {
-        //la linea lanza una excepcion si el correo o la contraseña está mal
-        InsforgeProvider.cliente.auth.signIn(email = correo, password = clave)
+        val response = InsForgeRetrofitInstance.api.login(
+            request = InsForgeLoginRequest(
+                email = correo.trim(),
+                password = clave
+            )
+        )
 
-        return rolesTemporales[correo.lowercase()]
+        if (!response.isSuccessful || response.body() == null) {
+            throw Exception("Credenciales inválidas o error de servidor (${response.code()})")
+        }
+
+        val data = response.body()!!
+        val user = data.user
+        val meta = user.userMetadata
+
+
+        val rolTexto = (meta?.rol ?: user.name ?: user.email.substringBefore("@"))
+            .uppercase()
+            .trim()
+
+        val rolAsignado = when {
+            rolTexto.contains("COORD") -> Rol.COORDINADOR
+            rolTexto.contains("GUIA") -> Rol.GUIA
+            rolTexto.contains("DRIVER") || rolTexto.contains("TRANSP") -> Rol.DRIVER
+            else -> return null
+        }
+
+
+        val recursoId = meta?.recursoId?.takeIf { it.isNotBlank() } ?: when (rolAsignado) {
+            Rol.DRIVER -> "TRP-01"
+            Rol.GUIA -> "GUI-01"
+            Rol.COORDINADOR -> null
+        }
+
+        val nombreMostrar = meta?.nombre
+            ?: user.name
+            ?: rolAsignado.etiqueta
+
+
+        sessionManager?.saveSession(
+            token = data.accessToken,
+            email = user.email,
+            nombre = nombreMostrar,
+            rol = rolAsignado.name,
+            recursoId = recursoId
+        )
+
+        return rolAsignado
     }
 
-    // Cierra la sesión en InsForge. Se usa cuando el usuario existe pero eligió la pestaña de otro rol
     suspend fun cerrarSesion() {
         try {
-            InsforgeProvider.cliente.auth.signOut()
-        } catch (e: Exception) {
+            sessionManager?.clearSession()
+        } catch (_: Exception) {
         }
     }
 }
