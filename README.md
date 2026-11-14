@@ -65,27 +65,7 @@ Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comun
 ---
 
 ## Ejecución de tests
+
+### 1. Pruebas Unitarias (JVM)
 ```bash
 .\gradlew.bat testDebugUnitTest --tests "com.example.proyectolince.ExampleUnitTest"
-```
-
-## Arquitectura y Estructura del Código
-
-El proyecto sigue una arquitectura limpia basada en **MVVM (Model-View-ViewModel)** y **Unidirectional Data Flow (UDF)** recomendada por Google:
-
-```text
-com.example.proyectolince/
-│
-├── data/
-│   ├── local/              # Base de datos local (Room DB, DAOs y Entidades)
-│   └── network/            # Cliente HTTP (Retrofit, Interfaces y Modelos de API OpenWeather)
-│
-├── ui/
-│   ├── screens/            # Pantallas en Jetpack Compose (LoginScreen, ServiciosScreen, DetalleScreen, etc.)
-│   ├── theme/              # Definición de Colores, Tipografías y Temas Material 3
-│   └── viewmodel/          # ViewModels (LoginViewModel, DetalleViewModel, etc.)
-│
-├── MainActivity.kt          # Punto de entrada y gestión del NavHost de navegación
-└── BuildConfig             # Configuración de variables globales (API Keys locales)
-
-
