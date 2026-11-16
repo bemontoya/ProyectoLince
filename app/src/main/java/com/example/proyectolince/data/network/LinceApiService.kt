@@ -7,51 +7,59 @@ import retrofit2.http.Query
 
 interface LinceApiService {
 
-    @GET("health")
-    suspend fun checkHealth(): Response<Any>
-
     @GET("api/v1/servicios")
     suspend fun getServicios(
+        @Query("fechaDesde") fechaDesde: String? = null,
+        @Query("fechaHasta") fechaHasta: String? = null,
+        @Query("oficina") oficina: String? = null,
+        @Query("tipo") tipo: String? = null,
+        @Query("estadoServicio") estadoServicio: String? = null,
+        @Query("estadoReserva") estadoReserva: String? = null,
+        @Query("statusPL") statusPL: String? = null,
+        @Query("clienteId") clienteId: Int? = null,
+        @Query("guiaId") guiaId: Int? = null,
+        @Query("transportistaId") transportistaId: Int? = null,
+        @Query("q") query: String? = null,
+        @Query("orden") orden: String = "fecha",
         @Query("page") page: Int = 1,
-        @Query("pageSize") pageSize: Int = 50,
-        @Query("fecha") fecha: String? = null,
-        @Query("estado") estado: String? = null,
-        @Query("tipo") tipo: String? = null
-    ): Response<LincePagedResponse<ServicioLinceDto>>
+        @Query("pageSize") pageSize: Int = 20
+    ): Response<PaginatedResponse<ServicioLinceDto>>
 
     @GET("api/v1/servicios/{id}")
-    suspend fun getServicioById(@Path("id") id: String): Response<ServicioLinceDto>
+    suspend fun getServicioById(
+        @Path("id") id: Int
+    ): Response<SingleResponse<ServicioLinceDto>>
 
     @GET("api/v1/guias")
     suspend fun getGuias(
+        @Query("oficina") oficina: String? = null,
+        @Query("q") query: String? = null,
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 50
-    ): Response<LincePagedResponse<GuiaLinceDto>>
-
-    @GET("api/v1/guias/{id}")
-    suspend fun getGuiaById(@Path("id") id: String): Response<GuiaLinceDto>
+    ): Response<PaginatedResponse<GuiaLinceDto>>
 
     @GET("api/v1/transportistas")
     suspend fun getTransportistas(
+        @Query("oficina") oficina: String? = null,
+        @Query("q") query: String? = null,
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 50
-    ): Response<LincePagedResponse<TransportistaLinceDto>>
-
-    @GET("api/v1/transportistas/{id}")
-    suspend fun getTransportistaById(@Path("id") id: String): Response<TransportistaLinceDto>
+    ): Response<PaginatedResponse<TransportistaLinceDto>>
 
     @GET("api/v1/clientes")
     suspend fun getClientes(
+        @Query("q") query: String? = null,
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 50
-    ): Response<LincePagedResponse<ClienteLinceDto>>
-
-    @GET("api/v1/clientes/{id}")
-    suspend fun getClienteById(@Path("id") id: String): Response<ClienteLinceDto>
+    ): Response<PaginatedResponse<ClienteLinceDto>>
 
     @GET("api/v1/catalogos")
-    suspend fun getCatalogos(): Response<CatalogosLinceDto>
+    suspend fun getCatalogos(): Response<SingleResponse<CatalogosLinceDto>>
 
     @GET("api/v1/resumen")
-    suspend fun getResumen(): Response<ResumenLinceDto>
+    suspend fun getResumen(
+        @Query("fechaDesde") fechaDesde: String? = null,
+        @Query("fechaHasta") fechaHasta: String? = null,
+        @Query("oficina") oficina: String? = null
+    ): Response<SingleResponse<ResumenLinceDto>>
 }

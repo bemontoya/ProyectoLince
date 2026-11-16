@@ -1,16 +1,102 @@
 <resources>
-    <string name="app_name">Southbound Field</string>
+    <string name="app_name">SouthBound Field</string>
+    <string name="subtitulo_app">Southbound Field</string>
+
+    <!-- Navegación -->
     <string name="nav_servicios">Servicios</string>
     <string name="nav_disponibilidad">Disponibilidad</string>
     <string name="nav_perfil">Perfil</string>
+
+
+    <!-- Login -->
+    <string name="login_subtitulo">Operaciones y asignaciones</string>
+    <string name="login_correo">CORREO</string>
+    <string name="login_password">CONTRASEÑA</string>
+    <string name="login_olvido">¿Olvidaste tu contraseña?</string>
+    <string name="login_btn">Iniciar sesión</string>
+    <string name="rol_driver">Driver</string>
+    <string name="rol_guia">Guía</string>
+    <string name="rol_coordinador">Coordinador</string>
+
+    <!-- Servicios -->
+    <string name="titulo_servicios">Servicios</string>
+    <string name="titulo_excursiones">Excursiones y Tours</string>
+    <string name="titulo_control">Centro de Control</string>
+    <string name="operacion_terreno">Operación en terreno</string>
+    <string name="operacion_guiado">Operación de guiado</string>
+    <string name="supervision_operativa">Supervisión operativa</string>
+    <string name="saludo_hola">¡Hola, %1$s!</string>
+    <string name="filtro_todos">Todos</string>
+    <string name="filtro_pendientes">Pendientes</string>
+    <string name="filtro_confirmados">Confirmados</string>
+    <string name="filtro_rechazados">Rechazados</string>
+    <string name="btn_confirmar">Confirmar</string>
+    <string name="btn_rechazar">Rechazar</string>
+    <string name="btn_ver_detalles">Ver detalles</string>
+    <string name="btn_supervisar">Supervisar servicio</string>
+    <string name="btn_checkin_pasajeros">Iniciar check-in de pasajeros</string>
+    <string name="sin_servicios">No hay servicios asignados para este filtro.</string>
+    <string name="dudas_ruta">¿Dudas con una ruta?</string>
+    <string name="contacta_despacho">Contacta a Despacho central</string>
+
+    <!-- Detalle -->
     <string name="titulo_detalle">Detalle</string>
+    <string name="titulo_detalle_excursion">Detalle de Excursión</string>
+    <string name="titulo_supervision">Supervisión Operativa</string>
     <string name="btn_volver">Volver</string>
+    <string name="actualizar_gps">Actualizar GPS</string>
+    <string name="en_zona">EN ZONA</string>
+    <string name="fuera_radio">FUERA DE RADIO</string>
+    <string name="origen">ORIGEN</string>
+    <string name="destino">DESTINO</string>
+    <string name="punto_encuentro">PUNTO DE ENCUENTRO (PICKUP)</string>
+    <string name="pasajeros">PASAJEROS</string>
+    <string name="recurso_asignado">RECURSO ASIGNADO</string>
     <string name="btn_checkin_gps">REGISTRAR CHECK-IN GPS</string>
     <string name="btn_checkout_gps">REGISTRAR CHECK-OUT GPS</string>
-    <string name="estado_finalizado">SERVICIO FINALIZADO</string>
-    <string name="geocerca_titulo">GEOCERCA PICKUP (RADIO 150M)</string>
-    <string name="geocerca_en_zona">EN ZONA</string>
-    <string name="geocerca_fuera_radio">FUERA DE RADIO</string>
-    <string name="btn_actualizar_gps">Actualizar GPS</string>
-    <string name="btn_abrir_mapa">Abrir en Waze / Google Maps</string>
+    <string name="btn_checkin_grupo">CONFIRMAR CHECK-IN DE GRUPO</string>
+    <string name="btn_finalizar_tour">FINALIZAR TOUR / EXCURSIÓN</string>
+    <string name="abrir_mapa">Abrir en Waze / Google Maps</string>
+
+    <!-- Disponibilidad -->
+    <string name="titulo_disponibilidad">Disponibilidad</string>
+    <string name="control_turnos">Control de turnos</string>
+    <string name="mi_disponibilidad">Mi disponibilidad</string>
+    <string name="subtitulo_disponibilidad">Gestiona tus jornadas activas y descansos programados en ruta.</string>
+    <string name="disponible_nuevas">Disponible para nuevas asignaciones</string>
+    <string name="no_disponible">No disponible</string>
+    <string name="desc_disponible">El equipo de despacho podrá asignarte nuevos servicios.</string>
+    <string name="desc_no_disponible">No recibirás nuevas asignaciones.</string>
+    <string name="regla_7_dias">Solo puedes bloquear fechas con al menos 7 días de anticipación y sin servicios asignados.</string>
+    <string name="bloquear_dia_btn">Bloquear día seleccionado</string>
+    <string name="desbloquear_dia_btn">Desbloquear día seleccionado</string>
+    <string name="proximos_bloqueos">Próximos bloqueos</string>
+    <string name="sin_dias_bloqueados">No tienes días bloqueados.</string>
+    <string name="dia_completo">Día completo</string>
+    <string name="estado_disponible">Disponible</string>
+    <string name="estado_bloqueado">Bloqueado</string>
+    <string name="estado_pendiente">Servicio pendiente</string>
+    <string name="estado_confirmado">Servicio confirmado</string>
+    <string name="leyenda_hoy">Hoy</string>
+    <string name="error_7_dias">Solo puedes bloquear días con al menos 7 días de anticipación (desde %1$s).</string>
+    <string name="error_servicio_asignado">Ese día tiene un servicio asignado. Recházalo primero para bloquearlo.</string>
+    <string name="msg_dia_bloqueado">Día bloqueado</string>
+    <string name="msg_dia_desbloqueado">Día desbloqueado</string>
+
+    <!-- Notificaciones -->
+    <string name="titulo_notificaciones">Notificaciones</string>
+    <string name="sin_notificaciones">No tienes notificaciones pendientes</string>
+
+    <!-- Perfil y Edición -->
+    <string name="titulo_perfil">Perfil</string>
+    <string name="en_turno">EN TURNO</string>
+    <string name="editar_perfil_titulo">Editar datos de perfil</string>
+    <string name="idioma_titulo">Idioma de la aplicación</string>
+    <string name="idioma_subtitulo">Selecciona español o inglés</string>
+    <string name="historial_titulo">Historial de servicios</string>
+    <string name="historial_subtitulo">Expediciones y traslados finalizados</string>
+    <string name="docs_titulo">Documentación y licencias</string>
+    <string name="docs_subtitulo">Consulta tus documentos registrados</string>
+    <string name="cerrar_sesion">Cerrar Sesión</string>
+    <string name="guardar_cambios">Guardar cambios</string>
 </resources>

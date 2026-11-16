@@ -1,10 +1,13 @@
-package com.example.proyectolince.viewmodel
+package com.example.proyectolince.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectolince.data.EstadoServicio
 import com.example.proyectolince.data.Servicio
+import com.example.proyectolince.data.SessionManager
 import com.example.proyectolince.data.TipoServicio
+import com.example.proyectolince.data.network.BackendRetrofitInstance
+import com.example.proyectolince.data.network.ConfirmacionBackendRequest
 import com.example.proyectolince.data.repository.LinceRepository
 import com.example.proyectolince.data.repository.ResultadoApi
 import com.example.proyectolince.data.toServicioUi
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 data class ServiciosUiState(
     val isLoading: Boolean = false,
@@ -20,7 +24,8 @@ data class ServiciosUiState(
 )
 
 class ServiciosViewModel(
-    private val repository: LinceRepository = LinceRepository()
+    private val repository: LinceRepository = LinceRepository(),
+    private val sessionManager: SessionManager? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ServiciosUiState(isLoading = true))
@@ -30,33 +35,20 @@ class ServiciosViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
-            when (val resultado = repository.obtenerServicios()) {
+            when (val resultado = repository.obtenerServicios(page = 1, pageSize = 50)) {
                 is ResultadoApi.Exito -> {
                     val todos = resultado.datos.map { it.toServicioUi() }
 
                     val filtradosPorRol = when (rolUsuario.uppercase().trim()) {
                         "DRIVER", "TRANSPORTISTA" -> todos.filter { servicio ->
-                            val esTipoDriver = servicio.tipo == TipoServicio.TRANSFER ||
+                            servicio.tipo == TipoServicio.TRANSFER ||
                                     servicio.tipo == TipoServicio.EXCURSION
-                            val coincideAsignacion = if (!idUsuario.isNullOrBlank()) {
-                                servicio.transportistaId.equals(idUsuario, ignoreCase = true)
-                            } else {
-                                !servicio.transportistaId.isNullOrBlank()
-                            }
-                            esTipoDriver && coincideAsignacion
                         }
                         "GUIA" -> todos.filter { servicio ->
-                            val esTipoGuia = servicio.tipo == TipoServicio.GUIADO ||
+                            servicio.tipo == TipoServicio.GUIADO ||
                                     servicio.tipo == TipoServicio.EXCURSION
-                            val coincideAsignacion = if (!idUsuario.isNullOrBlank()) {
-                                servicio.guiaId.equals(idUsuario, ignoreCase = true)
-                            } else {
-                                !servicio.guiaId.isNullOrBlank()
-                            }
-                            esTipoGuia && coincideAsignacion
                         }
-                        "COORDINADOR" -> todos
-                        else -> emptyList()
+                        else -> todos
                     }
 
                     _uiState.value = ServiciosUiState(
@@ -74,7 +66,12 @@ class ServiciosViewModel(
         }
     }
 
-    fun actualizarEstadoLocal(idServicio: String, nuevoEstado: EstadoServicio, motivo: String? = null) {
+    fun actualizarEstadoLocal(
+        idServicio: String,
+        nuevoEstado: EstadoServicio,
+        motivo: String? = null,
+        sessionOverride: SessionManager? = sessionManager
+    ) {
         val listaActualizada = _uiState.value.servicios.map { servicio ->
             if (servicio.id == idServicio) {
                 servicio.copy(estado = nuevoEstado, motivoRechazo = motivo)
@@ -83,5 +80,29 @@ class ServiciosViewModel(
             }
         }
         _uiState.value = _uiState.value.copy(servicios = listaActualizada)
+
+        // Persistencia en microservicio Spring Boot propio (POST api/operaciones/confirmaciones)
+        val manager = sessionOverride ?: return
+        viewModelScope.launch {
+            try {
+                val bearer = manager.getBearerToken() ?: return@launch
+                val estadoStr = when (nuevoEstado) {
+                    EstadoServicio.CONFIRMADO -> "CONFIRMADO"
+                    EstadoServicio.RECHAZADO -> "RECHAZADO"
+                    else -> nuevoEstado.name
+                }
+                BackendRetrofitInstance.api.registrarConfirmacion(
+                    bearerToken = bearer,
+                    request = ConfirmacionBackendRequest(
+                        idempotencyKey = "CONF-${idServicio}-${UUID.randomUUID()}",
+                        servicioId = idServicio,
+                        estado = estadoStr,
+                        motivoRechazo = motivo
+                    )
+                )
+            } catch (_: Exception) {
+                // Si no hay conexión, el estado queda actualizado localmente
+            }
+        }
     }
 }

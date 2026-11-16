@@ -1,16 +1,103 @@
 <resources>
-    <string name="app_name">Southbound Field</string>
+    <string name="app_name">SouthBound Field</string>
+    <string name="subtitulo_app">Southbound Field</string>
+
+    <!-- Navigation -->
     <string name="nav_servicios">Services</string>
     <string name="nav_disponibilidad">Availability</string>
     <string name="nav_perfil">Profile</string>
-    <string name="titulo_detalle">Service Detail</string>
+
+
+    <!-- Login -->
+    <string name="login_subtitulo">Operations &amp; assignments</string>
+    <string name="login_correo">EMAIL</string>
+    <string name="login_password">PASSWORD</string>
+    <string name="login_olvido">Forgot password?</string>
+    <string name="login_btn">Sign in</string>
+    <string name="rol_driver">Driver</string>
+    <string name="rol_guia">Guide</string>
+    <string name="rol_coordinador">Coordinator</string>
+
+    <!-- Services -->
+    <string name="titulo_servicios">Services</string>
+    <string name="titulo_excursiones">Excursions &amp; Tours</string>
+    <string name="titulo_control">Control Center</string>
+    <string name="operacion_terreno">Field Operations</string>
+    <string name="operacion_guiado">Guiding Operations</string>
+    <string name="supervision_operativa">Operational Supervision</string>
+    <string name="saludo_hola">Hello, %1$s!</string>
+    <string name="filtro_todos">All</string>
+    <string name="filtro_pendientes">Pending</string>
+    <string name="filtro_confirmados">Confirmed</string>
+    <string name="filtro_rechazados">Rejected</string>
+    <string name="btn_confirmar">Confirm</string>
+    <string name="btn_rechazar">Reject</string>
+    <string name="btn_ver_detalles">View details</string>
+    <string name="btn_supervisar">Supervise service</string>
+    <string name="btn_checkin_pasajeros">Start passenger check-in</string>
+    <string name="sin_servicios">No services assigned for this filter.</string>
+    <string name="dudas_ruta">Questions about a route?</string>
+    <string name="contacta_despacho">Contact Central Dispatch</string>
+
+    <!-- Detail -->
+    <string name="titulo_detalle">Detail</string>
+    <string name="titulo_detalle_excursion">Excursion Detail</string>
+    <string name="titulo_supervision">Operational Supervision</string>
     <string name="btn_volver">Back</string>
+    <string name="actualizar_gps">Refresh GPS</string>
+    <string name="en_zona">IN ZONE</string>
+    <string name="fuera_radio">OUT OF RANGE</string>
+    <string name="origen">PICKUP / ORIGIN</string>
+    <string name="destino">DROPOFF / DESTINATION</string>
+    <string name="punto_encuentro">MEETING POINT (PICKUP)</string>
+    <string name="pasajeros">PASSENGERS</string>
+    <string name="recurso_asignado">ASSIGNED RESOURCE</string>
     <string name="btn_checkin_gps">REGISTER GPS CHECK-IN</string>
     <string name="btn_checkout_gps">REGISTER GPS CHECK-OUT</string>
-    <string name="estado_finalizado">SERVICE COMPLETED</string>
-    <string name="geocerca_titulo">PICKUP GEOFENCE (150M RADIUS)</string>
-    <string name="geocerca_en_zona">IN ZONE</string>
-    <string name="geocerca_fuera_radio">OUT OF RADIUS</string>
-    <string name="btn_actualizar_gps">Refresh GPS</string>
-    <string name="btn_abrir_mapa">Open in Waze / Google Maps</string>
+    <string name="btn_checkin_grupo">CONFIRM GROUP CHECK-IN</string>
+    <string name="btn_finalizar_tour">FINISH TOUR / EXCURSION</string>
+    <string name="abrir_mapa">Open in Waze / Google Maps</string>
+
+
+    <!-- Availability -->
+    <string name="titulo_disponibilidad">Availability</string>
+    <string name="control_turnos">Shift control</string>
+    <string name="mi_disponibilidad">My availability</string>
+    <string name="subtitulo_disponibilidad">Manage your active shifts and scheduled days off.</string>
+    <string name="disponible_nuevas">Available for new assignments</string>
+    <string name="no_disponible">Unavailable</string>
+    <string name="desc_disponible">Dispatch will be able to assign new services to you.</string>
+    <string name="desc_no_disponible">You will not receive new assignments.</string>
+    <string name="regla_7_dias">You can only block dates at least 7 days in advance and without assigned services.</string>
+    <string name="bloquear_dia_btn">Block selected day</string>
+    <string name="desbloquear_dia_btn">Unblock selected day</string>
+    <string name="proximos_bloqueos">Upcoming blocks</string>
+    <string name="sin_dias_bloqueados">You have no blocked days.</string>
+    <string name="dia_completo">Full day</string>
+    <string name="estado_disponible">Available</string>
+    <string name="estado_bloqueado">Blocked</string>
+    <string name="estado_pendiente">Pending service</string>
+    <string name="estado_confirmado">Confirmed service</string>
+    <string name="leyenda_hoy">Today</string>
+    <string name="error_7_dias">You can only block days at least 7 days in advance (from %1$s).</string>
+    <string name="error_servicio_asignado">That day has an assigned service. Reject it first to block it.</string>
+    <string name="msg_dia_bloqueado">Day blocked</string>
+    <string name="msg_dia_desbloqueado">Day unblocked</string>
+
+    <!-- Notifications -->
+    <string name="titulo_notificaciones">Notifications</string>
+    <string name="sin_notificaciones">You have no pending notifications</string>
+
+    <!-- Profile & Edit -->
+    <string name="titulo_perfil">Profile</string>
+    <string name="en_turno">ON SHIFT</string>
+    <string name="editar_perfil_titulo">Edit profile details</string>
+    <string name="idioma_titulo">Application language</string>
+    <string name="idioma_subtitulo">Select Spanish or English</string>
+    <string name="historial_titulo">Service history</string>
+    <string name="historial_subtitulo">Completed expeditions and transfers</string>
+    <string name="docs_titulo">Documentation &amp; licenses</string>
+    <string name="docs_subtitulo">Check your registered documents</string>
+    <string name="cerrar_sesion">Log Out</string>
+    <string name="guardar_cambios">Save changes</string>
 </resources>

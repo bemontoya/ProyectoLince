@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object BackendRetrofitInstance {
 
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "https://proyectolince-backend.onrender.com/"
 
     val api: BackendApiService by lazy {
         Retrofit.Builder()

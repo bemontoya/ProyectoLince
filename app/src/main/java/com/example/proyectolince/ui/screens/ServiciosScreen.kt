@@ -1,5 +1,6 @@
 package com.example.proyectolince.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -19,23 +20,27 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.proyectolince.R
 import com.example.proyectolince.data.EstadoServicio
 import com.example.proyectolince.data.Servicio
 import com.example.proyectolince.data.TipoServicio
 import com.example.proyectolince.ui.theme.*
-import com.example.proyectolince.viewmodel.ServiciosViewModel
+import com.example.proyectolince.ui.viewmodel.ServiciosViewModel
 import kotlinx.coroutines.launch
 
-private val opcionesFiltro = listOf<Pair<String, EstadoServicio?>>(
-    "Todos" to null,
-    "Pendientes" to EstadoServicio.PENDIENTE,
-    "Confirmados" to EstadoServicio.CONFIRMADO,
-    "Rechazados" to EstadoServicio.RECHAZADO
+private data class OpcionFiltro(@StringRes val nombreRes: Int, val estado: EstadoServicio?)
+
+private val opcionesFiltro = listOf(
+    OpcionFiltro(R.string.filtro_todos, null),
+    OpcionFiltro(R.string.filtro_pendientes, EstadoServicio.PENDIENTE),
+    OpcionFiltro(R.string.filtro_confirmados, EstadoServicio.CONFIRMADO),
+    OpcionFiltro(R.string.filtro_rechazados, EstadoServicio.RECHAZADO)
 )
 
 private data class ColoresEstado(val franja: Color, val fondoBadge: Color, val textoBadge: Color)
@@ -46,6 +51,39 @@ private fun coloresDe(estado: EstadoServicio): ColoresEstado = when (estado) {
     EstadoServicio.RECHAZADO -> ColoresEstado(RojoTextoRechazar, RojoRechazar, RojoTextoRechazar)
     EstadoServicio.MODIFICADO -> ColoresEstado(AzulPrincipal, AzulSecundario, AzulPrincipal)
     EstadoServicio.FINALIZADO -> ColoresEstado(TextoGris, Color(0xFFE2E8F0), TextoGris)
+}
+
+private data class DatosGuiaParseados(
+    val puntoEncuentro: String,
+    val codigoReserva: String?,
+    val notasGrupo: String?
+)
+
+private fun parsearReferenciaGuia(referencia: String): DatosGuiaParseados {
+    val partes = referencia.split("•").map { it.trim() }.filter { it.isNotBlank() }
+    val rutaBruta = partes.firstOrNull().orEmpty()
+    val puntos = rutaBruta.split("→").map { it.trim() }.filter { it.isNotBlank() }
+    val puntoEncuentro = when {
+        puntos.size >= 2 && puntos[0].equals(puntos[1], ignoreCase = true) -> puntos[0]
+        puntos.isNotEmpty() -> puntos.first()
+        else -> rutaBruta.ifBlank { "Por confirmar" }
+    }
+
+    val codigo = partes.firstOrNull { it.startsWith("Ref:", ignoreCase = true) }
+        ?.removePrefix("Ref:")
+        ?.removePrefix("ref:")
+        ?.trim()
+
+    val notas = partes.drop(1)
+        .filterNot { it.startsWith("Ref:", ignoreCase = true) }
+        .joinToString(" • ")
+        .ifBlank { null }
+
+    return DatosGuiaParseados(
+        puntoEncuentro = puntoEncuentro,
+        codigoReserva = codigo,
+        notasGrupo = notas
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,6 +105,9 @@ fun ServiciosScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val esGuia = rolUsuario.equals("GUIA", ignoreCase = true)
+    val esCoordinador = rolUsuario.equals("COORDINADOR", ignoreCase = true)
+
     LaunchedEffect(rolUsuario, idUsuario) {
         viewModel.cargarServiciosPorRol(rolUsuario = rolUsuario, idUsuario = idUsuario)
     }
@@ -84,16 +125,30 @@ fun ServiciosScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Southbound Field", fontSize = 11.sp, color = TextoGris, fontWeight = FontWeight.Bold)
-                        Text("Servicios", fontSize = 20.sp, color = TextoOscuro, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.subtitulo_app),
+                            fontSize = 11.sp,
+                            color = TextoGris,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = when {
+                                esGuia -> stringResource(R.string.titulo_excursiones)
+                                esCoordinador -> stringResource(R.string.titulo_control)
+                                else -> stringResource(R.string.titulo_servicios)
+                            },
+                            fontSize = 20.sp,
+                            color = TextoOscuro,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = TextoOscuro)
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = TextoOscuro)
                     }
                     IconButton(onClick = onNavigateToNotificaciones) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
+                        Icon(Icons.Default.Notifications, contentDescription = null, tint = TextoOscuro)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoPantalla)
@@ -126,8 +181,21 @@ fun ServiciosScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Operación en terreno", fontSize = 12.sp, color = TextoGris)
-                        Text("¡Hola, $nombreUsuario!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+                        Text(
+                            text = when {
+                                esGuia -> stringResource(R.string.operacion_guiado)
+                                esCoordinador -> stringResource(R.string.supervision_operativa)
+                                else -> stringResource(R.string.operacion_terreno)
+                            },
+                            fontSize = 12.sp,
+                            color = TextoGris
+                        )
+                        Text(
+                            text = stringResource(R.string.saludo_hola, nombreUsuario),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextoOscuro
+                        )
                     }
                     Surface(color = AzulSecundario, shape = RoundedCornerShape(16.dp)) {
                         Text(
@@ -146,12 +214,13 @@ fun ServiciosScreen(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    opcionesFiltro.forEach { (nombre, estado) ->
-                        val cantidad = if (estado == null) servicios.size else servicios.count { it.estado == estado }
+                    opcionesFiltro.forEach { opcion ->
+                        val cantidad = if (opcion.estado == null) servicios.size else servicios.count { it.estado == opcion.estado }
+                        val etiquetaFiltro = stringResource(opcion.nombreRes)
                         FilterChip(
-                            selected = filtro == estado,
-                            onClick = { filtro = estado },
-                            label = { Text("$nombre $cantidad", maxLines = 1) },
+                            selected = filtro == opcion.estado,
+                            onClick = { filtro = opcion.estado },
+                            label = { Text("$etiquetaFiltro $cantidad", maxLines = 1) },
                             shape = RoundedCornerShape(20.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AzulPrincipal,
@@ -182,20 +251,20 @@ fun ServiciosScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                "Error al cargar servicios",
+                                "Error",
                                 fontWeight = FontWeight.Bold,
                                 color = RojoTextoRechazar,
                                 fontSize = 14.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                uiState.errorMessage ?: "Error desconocido",
+                                uiState.errorMessage ?: "",
                                 color = RojoTextoRechazar,
                                 fontSize = 12.sp
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             TextButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario) }) {
-                                Text("Reintentar", color = RojoTextoRechazar, fontWeight = FontWeight.Bold)
+                                Text("Retry", color = RojoTextoRechazar, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -203,7 +272,7 @@ fun ServiciosScreen(
             } else if (serviciosFiltrados.isEmpty()) {
                 item {
                     Text(
-                        "No hay servicios asignados para este filtro.",
+                        text = stringResource(R.string.sin_servicios),
                         fontSize = 13.sp,
                         color = TextoGris,
                         modifier = Modifier.padding(vertical = 24.dp)
@@ -217,7 +286,7 @@ fun ServiciosScreen(
                         onClick = { onNavigateToDetalle(servicio.id) },
                         onConfirmar = {
                             viewModel.actualizarEstadoLocal(servicio.id, EstadoServicio.CONFIRMADO)
-                            scope.launch { snackbarHostState.showSnackbar("Servicio confirmado") }
+                            scope.launch { snackbarHostState.showSnackbar("OK") }
                         },
                         onRechazar = { servicioARechazar = servicio },
                         onCheckIn = { onNavigateToDetalle(servicio.id) }
@@ -236,16 +305,29 @@ fun ServiciosScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Call, contentDescription = null, tint = AzulPrincipal)
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Icon(
+                                imageVector = if (esCoordinador) Icons.Default.SupportAgent else Icons.Default.Call,
+                                contentDescription = null,
+                                tint = AzulPrincipal
+                            )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
-                                Text("¿Dudas con una ruta?", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Text("Contacta a Despacho central", fontSize = 11.sp, color = TextoGris)
+                                Text(
+                                    text = stringResource(R.string.dudas_ruta),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextoOscuro
+                                )
+                                Text(
+                                    text = stringResource(R.string.contacta_despacho),
+                                    fontSize = 11.sp,
+                                    color = TextoGris
+                                )
                             }
                         }
                         IconButton(onClick = { }) {
-                            Icon(Icons.Default.Phone, contentDescription = "Llamar a despacho", tint = AzulPrincipal)
+                            Icon(Icons.Default.Phone, contentDescription = null, tint = AzulPrincipal)
                         }
                     }
                 }
@@ -259,7 +341,6 @@ fun ServiciosScreen(
             onConfirmar = { motivo ->
                 viewModel.actualizarEstadoLocal(servicio.id, EstadoServicio.RECHAZADO, motivo)
                 servicioARechazar = null
-                scope.launch { snackbarHostState.showSnackbar("Servicio rechazado") }
             },
             onCancelar = { servicioARechazar = null }
         )
@@ -329,65 +410,10 @@ private fun ServicioCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                val imagen = servicio.imagen
-                if (imagen != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(140.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.BottomStart
-                    ) {
-                        Image(
-                            painter = painterResource(id = imagen),
-                            contentDescription = "Foto de ${servicio.titulo}",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.matchParentSize()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.65f))
-                                    )
-                                )
-                        )
-                        Text(
-                            servicio.titulo,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                } else {
-                    Text(servicio.titulo, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = TextoGris, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(servicio.referencia, fontSize = 12.sp, color = TextoGris)
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Groups, contentDescription = null, tint = TextoGris, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("${servicio.pasajeros} pax", fontSize = 12.sp, color = TextoGris)
-                }
-
-                if (esCoordinador) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    val asignacion = buildString {
-                        append("Transp: ${servicio.transportistaId ?: "Sin asignar"}")
-                        if (servicio.tipo != TipoServicio.TRANSFER) {
-                            append(" • Guía: ${servicio.guiaId ?: "Sin asignar"}")
-                        }
-                    }
-                    Text(asignacion, fontSize = 11.sp, color = AzulPrincipal, fontWeight = FontWeight.SemiBold)
+                when {
+                    esGuia -> ContenidoTarjetaGuia(servicio = servicio)
+                    esCoordinador -> ContenidoTarjetaCoordinador(servicio = servicio)
+                    else -> ContenidoTarjetaTransporte(servicio = servicio)
                 }
 
                 when (servicio.estado) {
@@ -403,7 +429,7 @@ private fun ServicioCard(
                                 ) {
                                     Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Confirmar", fontSize = 13.sp)
+                                    Text(stringResource(R.string.btn_confirmar), fontSize = 13.sp)
                                 }
                                 Button(
                                     onClick = onRechazar,
@@ -413,8 +439,20 @@ private fun ServicioCard(
                                 ) {
                                     Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Rechazar", fontSize = 13.sp)
+                                    Text(stringResource(R.string.btn_rechazar), fontSize = 13.sp)
                                 }
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            FilledTonalButton(
+                                onClick = onClick,
+                                colors = ButtonDefaults.filledTonalButtonColors(containerColor = AzulSecundario, contentColor = AzulPrincipal),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth().height(44.dp)
+                            ) {
+                                Text(stringResource(R.string.btn_supervisar))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(Icons.Default.ChevronRight, contentDescription = null)
                             }
                         }
                     }
@@ -430,16 +468,19 @@ private fun ServicioCard(
                             ) {
                                 Icon(Icons.Default.FormatListBulleted, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Iniciar check-in de pasajeros")
+                                Text(stringResource(R.string.btn_checkin_pasajeros))
                             }
                         } else {
                             FilledTonalButton(
                                 onClick = onClick,
                                 colors = ButtonDefaults.filledTonalButtonColors(containerColor = AzulSecundario, contentColor = AzulPrincipal),
                                 shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxWidth().height(48.dp)
+                                modifier = Modifier.fillMaxWidth().height(46.dp)
                             ) {
-                                Text("Ver detalles")
+                                Text(
+                                    text = if (esCoordinador) stringResource(R.string.btn_supervisar)
+                                    else stringResource(R.string.btn_ver_detalles)
+                                )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(Icons.Default.ChevronRight, contentDescription = null)
                             }
@@ -449,9 +490,10 @@ private fun ServicioCard(
                     EstadoServicio.RECHAZADO -> {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            "Motivo: ${servicio.motivoRechazo ?: "Sin motivo"}",
+                            "Motivo: ${servicio.motivoRechazo ?: "-"}",
                             fontSize = 12.sp,
-                            color = RojoTextoRechazar
+                            color = RojoTextoRechazar,
+                            fontWeight = FontWeight.Medium
                         )
                     }
 
@@ -459,6 +501,269 @@ private fun ServicioCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ContenidoTarjetaCoordinador(servicio: Servicio) {
+    Text(
+        text = servicio.titulo,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        color = TextoOscuro
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.LocationOn, contentDescription = null, tint = TextoGris, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(servicio.referencia, fontSize = 12.sp, color = TextoGris)
+    }
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.Groups, contentDescription = null, tint = TextoGris, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text("${servicio.pasajeros} pax", fontSize = 12.sp, color = TextoGris)
+    }
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    Surface(
+        color = FondoPantalla,
+        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val tieneTransp = !servicio.transportistaId.isNullOrBlank()
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Default.DirectionsCar,
+                    contentDescription = null,
+                    tint = if (tieneTransp) AzulPrincipal else NaranjaPendiente,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (tieneTransp) "Driver: #${servicio.transportistaId}" else "Driver: N/A",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (tieneTransp) TextoOscuro else NaranjaPendiente,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            if (servicio.tipo != TipoServicio.TRANSFER) {
+                val tieneGuia = !servicio.guiaId.isNullOrBlank()
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Icon(
+                        imageVector = Icons.Default.RecordVoiceOver,
+                        contentDescription = null,
+                        tint = if (tieneGuia) AzulPrincipal else NaranjaPendiente,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (tieneGuia) "Guide: #${servicio.guiaId}" else "Guide: N/A",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (tieneGuia) TextoOscuro else NaranjaPendiente,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContenidoTarjetaGuia(servicio: Servicio) {
+    val datosGuia = remember(servicio.referencia) { parsearReferenciaGuia(servicio.referencia) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = servicio.titulo,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextoOscuro,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (datosGuia.codigoReserva != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Surface(
+                color = AzulSecundario,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Ref: ${datosGuia.codigoReserva}",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulPrincipal,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
+    }
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    Surface(
+        color = FondoPantalla,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.MeetingRoom,
+                    contentDescription = null,
+                    tint = AzulPrincipal,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.punto_encuentro),
+                        fontSize = 10.sp,
+                        color = TextoGris,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = datosGuia.puntoEncuentro,
+                        fontSize = 13.sp,
+                        color = TextoOscuro,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Icon(
+                        imageVector = Icons.Default.Groups,
+                        contentDescription = null,
+                        tint = AzulPrincipal,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "${servicio.pasajeros} pax",
+                        fontSize = 12.sp,
+                        color = TextoOscuro,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                if (!servicio.transportistaId.isNullOrBlank()) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(
+                            imageVector = Icons.Default.DirectionsBus,
+                            contentDescription = null,
+                            tint = AzulPrincipal,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Driver: ${servicio.transportistaId}",
+                            fontSize = 12.sp,
+                            color = TextoOscuro,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+
+            if (datosGuia.notasGrupo != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = TextoGris,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = datosGuia.notasGrupo,
+                        fontSize = 11.sp,
+                        color = TextoGris
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContenidoTarjetaTransporte(servicio: Servicio) {
+    val imagen = servicio.imagen
+    if (imagen != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.BottomStart
+        ) {
+            Image(
+                painter = painterResource(id = imagen),
+                contentDescription = servicio.titulo,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.65f))
+                        )
+                    )
+            )
+            Text(
+                servicio.titulo,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(12.dp)
+            )
+        }
+    } else {
+        Text(servicio.titulo, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.LocationOn, contentDescription = null, tint = TextoGris, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(servicio.referencia, fontSize = 12.sp, color = TextoGris)
+    }
+    Spacer(modifier = Modifier.height(2.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.Groups, contentDescription = null, tint = TextoGris, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text("${servicio.pasajeros} pax", fontSize = 12.sp, color = TextoGris)
     }
 }
 
@@ -472,29 +777,23 @@ private fun MotivoRechazoDialog(
 
     AlertDialog(
         onDismissRequest = onCancelar,
-        title = { Text("Rechazar servicio") },
+        title = { Text(stringResource(R.string.btn_rechazar)) },
         text = {
-            Column {
-                Text("Indica el motivo para que coordinación pueda reasignarlo.", fontSize = 13.sp, color = TextoGris)
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = motivo,
-                    onValueChange = { motivo = it; error = null },
-                    label = { Text("Motivo") },
-                    isError = error != null,
-                    supportingText = { error?.let { Text(it) } },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            OutlinedTextField(
+                value = motivo,
+                onValueChange = { motivo = it; error = null },
+                label = { Text("Motivo / Reason") },
+                isError = error != null,
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         confirmButton = {
             TextButton(onClick = {
-                if (motivo.isBlank()) error = "Ingresa el motivo del rechazo"
-                else onConfirmar(motivo.trim())
-            }) { Text("Rechazar") }
+                if (motivo.isNotBlank()) onConfirmar(motivo.trim())
+            }) { Text(stringResource(R.string.btn_rechazar)) }
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+            TextButton(onClick = onCancelar) { Text("Cancel") }
         }
     )
 }

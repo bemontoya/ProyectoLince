@@ -1,103 +1,150 @@
 package com.example.proyectolince.data.network
 
-// envoltorio para respuestas paginadas de la API de Lince
-data class LincePagedResponse<T>(
+import com.google.gson.annotations.SerializedName
+
+
+data class PaginatedResponse<T>(
     val data: List<T>,
-    val meta: LinceMeta?
+    val meta: PaginationMeta
 )
 
-data class LinceMeta(
+data class SingleResponse<T>(
+    val data: T
+)
+
+data class PaginationMeta(
     val page: Int,
     val pageSize: Int,
     val total: Int,
     val totalPages: Int
 )
 
-// error estándar de la API con requestId para trazabilidad
-data class LinceErrorResponse(
-    val error: String?,
-    val message: String?,
-    val requestId: String?
-)
-
+// Modelo de Servicio
 data class ServicioLinceDto(
-    val id: String,
-    val codigo: String?,               // Ej: "SRV-000245"
-    val srv: String?,                  // TR, GS, EX
-    val tipo: String,                  // TRANSFER, GUIDED_SERVICE, EXCURSION
-    val fecha: String,                 // YYYY-MM-DD
-    val horaPickup: String?,           // HH:mm (America/Santiago)
-    val descripcion: String?,
-    val descripcionPadre: String?,     // Tour al que pertenece
-    val estadoServicio: String?,       // CF, RQ, WL, XX
+    val id: Int,
+    val codigo: String,
+    val srv: String,
+    val tipo: String, // TRANSFER, EXCURSION, GUIDED_SERVICE
+    val fecha: String, // YYYY-MM-DD
+    val horaPickup: String, // HH:mm (America/Santiago)
+    val descripcion: String,
+    val descripcionPadre: String?,
+    val estadoServicio: String, // CF, RQ, WL, XX
+    val reserva: ReservaDto?,
+    val pax: PaxDto?,
     val pickup: String?,
     val dropoff: String?,
-    val notas: String?,                // Ej: "Pickup en lobby del hotel"
-    val pax: PaxLinceDto?,
-    val asignacion: AsignacionLinceDto?,
-    val reserva: ReservaLinceDto?,
-    val cliente: ClienteRefDto?,
-    val guia: StaffRefDto?,
-    val transportista: StaffRefDto?
+    val notas: String?,
+    val oficina: OficinaDto?,
+    val cliente: ClienteResumenDto?,
+    val idiomaRequerido: IdiomaDto?,
+    val guia: RecursoResumenDto?,
+    val transportista: RecursoResumenDto?,
+    val vehiculo: VehiculoDto?,
+    val asignacion: AsignacionDto?
 )
 
-data class PaxLinceDto(
-    val texto: String?,                // Ej: "2+1" (adultos+niños)
-    val adultos: Int?,
-    val ninos: Int?,
-    val total: Int?
-)
-
-data class AsignacionLinceDto(
-    val statusPL: String?              // CF, RQ, DL, CX o null
-)
-
-data class ReservaLinceDto(
+data class ReservaDto(
     val referencia: String?,
-    val estado: String?                // CF, RQ, WL, XX
+    val nombre: String?,
+    val estado: String?
 )
 
-data class ClienteRefDto(
-    val id: String?,
-    val nombre: String?
+data class PaxDto(
+    val adultos: Int,
+    val ninos: Int,
+    val total: Int,
+    val texto: String?
 )
 
-data class StaffRefDto(
-    val id: String?,
-    val nombre: String?
+data class OficinaDto(
+    val codigo: String,
+    val nombre: String
 )
+
+data class ClienteResumenDto(
+    val id: Int,
+    val codigo: String,
+    val nombre: String,
+    val pais: String?
+)
+
+data class IdiomaDto(
+    val codigo: String,
+    val nombre: String
+)
+
+data class RecursoResumenDto(
+    val id: Int,
+    val codigo: String,
+    val nombre: String
+)
+
+data class VehiculoDto(
+    val id: Int,
+    val patente: String,
+    val tipo: String,
+    val capacidad: Int
+)
+
+data class AsignacionDto(
+    val statusPL: String?,
+    val actualizadoEn: String?
+)
+
 
 data class GuiaLinceDto(
-    val id: String,
+    val id: Int,
+    val codigo: String,
     val nombre: String,
-    val idiomas: List<String>?,
-    val telefono: String?,
+    val oficina: OficinaDto?,
+    val idiomas: List<IdiomaDto>?,
     val activo: Boolean?
 )
 
 data class TransportistaLinceDto(
-    val id: String,
+    val id: Int,
+    val codigo: String,
     val nombre: String,
-    val vehiculo: String?,
-    val patente: String?,
-    val capacidad: Int?,
-    val telefono: String?
+    val oficina: OficinaDto?,
+    val activo: Boolean?
 )
 
 data class ClienteLinceDto(
-    val id: String,
+    val id: Int,
+    val codigo: String,
     val nombre: String,
-    val telefono: String?,
-    val email: String?
+    val pais: String?
 )
 
+
 data class CatalogosLinceDto(
-    val tiposServicio: List<String>?,
-    val estados: Map<String, String>?
+    val oficinas: List<OficinaDto>?,
+    val tiposServicio: List<CatalogoItemDto>?,
+    val estadosServicio: List<CatalogoItemDto>?,
+    val idiomas: List<IdiomaDto>?
+)
+
+data class CatalogoItemDto(
+    val codigo: String,
+    val nombre: String? = null,
+    val descripcion: String? = null
 )
 
 data class ResumenLinceDto(
     val totalServicios: Int?,
-    val confirmados: Int?,
-    val pendientes: Int?
+    val porEstado: Map<String, Int>?,
+    val porTipo: Map<String, Int>?,
+    val porOficina: Map<String, Int>?
+)
+
+
+data class LinceErrorResponse(
+    val error: LinceErrorDetail?
+)
+
+data class LinceErrorDetail(
+    val code: String?,
+    val message: String?,
+    val requestId: String?
 )

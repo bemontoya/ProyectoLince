@@ -1,10 +1,10 @@
 package com.example.proyectolince.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,15 +20,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.proyectolince.R
 import com.example.proyectolince.ui.theme.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -40,41 +44,43 @@ private data class EstiloDia(
     val relleno: Color,
     val texto: Color,
     val indicador: Color,
-    val etiqueta: String
+    @StringRes val etiquetaRes: Int
 )
 
 private fun estiloDe(tipo: TipoDia): EstiloDia = when (tipo) {
     TipoDia.SERVICIO_PENDIENTE -> EstiloDia(
         NaranjaFondoBadge, NaranjaPendiente, NaranjaPendiente,
-        "Servicio pendiente"
+        R.string.estado_pendiente
     )
     TipoDia.SERVICIO_CONFIRMADO -> EstiloDia(
         VerdeFondoBadge, VerdeConfirmado, VerdeConfirmado,
-        "Servicio confirmado"
+        R.string.estado_confirmado
     )
     TipoDia.BLOQUEADO -> EstiloDia(
         RojoRechazar, RojoTextoRechazar, RojoTextoRechazar,
-        "Bloqueado"
+        R.string.estado_bloqueado
     )
 }
 
 private fun diasConServicioDemo(): Map<LocalDate, TipoDia> {
-    val mes = YearMonth.now()
+    val hoy = LocalDate.now()
     return mapOf(
-        mes.atDay(12) to TipoDia.SERVICIO_PENDIENTE,
-        mes.atDay(14) to TipoDia.SERVICIO_CONFIRMADO,
-        mes.atDay(15) to TipoDia.SERVICIO_CONFIRMADO
+        hoy.plusDays(1) to TipoDia.SERVICIO_PENDIENTE,
+        hoy.plusDays(3) to TipoDia.SERVICIO_CONFIRMADO,
+        hoy.plusDays(4) to TipoDia.SERVICIO_CONFIRMADO
     )
 }
 
-private val localeCl: Locale = Locale.forLanguageTag("es-CL")
-
-private fun fechaLarga(fecha: LocalDate): String {
-    val dia = fecha.dayOfWeek.getDisplayName(TextStyle.FULL, localeCl).replaceFirstChar {
+private fun fechaLarga(fecha: LocalDate, locale: Locale): String {
+    val dia = fecha.dayOfWeek.getDisplayName(TextStyle.FULL, locale).replaceFirstChar {
         it.uppercase()
     }
-    val mes = fecha.month.getDisplayName(TextStyle.FULL, localeCl)
-    return "$dia ${fecha.dayOfMonth} de $mes"
+    val mes = fecha.month.getDisplayName(TextStyle.FULL, locale)
+    return if (locale.language == "en") {
+        "$dia, $mes ${fecha.dayOfMonth}"
+    } else {
+        "$dia ${fecha.dayOfMonth} de $mes"
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,6 +93,8 @@ fun DisponibilidadScreen(
     onNavigateToPerfil: () -> Unit = {}
 ) {
     val hoy = remember { LocalDate.now() }
+    val fechaMinimaBloqueo = remember(hoy) { hoy.plusDays(7) }
+    val localeActual = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
 
     var isDisponible by rememberSaveable { mutableStateOf(true) }
     var mes by rememberSaveable { mutableStateOf(YearMonth.now()) }
@@ -95,7 +103,7 @@ fun DisponibilidadScreen(
 
     val serviciosDemo = remember { diasConServicioDemo() }
     val bloqueos = remember {
-        mutableStateListOf(Bloqueo(YearMonth.now().atDay(18), "Descanso programado"))
+        mutableStateListOf(Bloqueo(hoy.plusDays(10), "Descanso programado / Scheduled rest"))
     }
 
     val tiposPorFecha: Map<LocalDate, TipoDia> = buildMap {
@@ -106,18 +114,25 @@ fun DisponibilidadScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val msgDesbloqueado = stringResource(R.string.msg_dia_desbloqueado)
+    val msgBloqueado = stringResource(R.string.msg_dia_bloqueado)
+    val msgServicioAsignado = stringResource(R.string.error_servicio_asignado)
+    val fechaMinimaStr = fechaMinimaBloqueo.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    val msg7Dias = stringResource(R.string.error_7_dias, fechaMinimaStr)
+
     fun alternarBloqueo() {
         val fecha = fechaSeleccionada ?: return
         val existente = bloqueos.find { it.fecha == fecha }
         when {
             existente != null -> {
                 bloqueos.remove(existente)
-                scope.launch { snackbarHostState.showSnackbar("Día desbloqueado") }
+                scope.launch { snackbarHostState.showSnackbar(msgDesbloqueado) }
             }
             serviciosDemo.containsKey(fecha) -> {
-                scope.launch {
-                    snackbarHostState.showSnackbar("Ese día tiene un servicio asignado. Recházalo primero para bloquearlo.")
-                }
+                scope.launch { snackbarHostState.showSnackbar(msgServicioAsignado) }
+            }
+            fecha.isBefore(fechaMinimaBloqueo) -> {
+                scope.launch { snackbarHostState.showSnackbar(msg7Dias) }
             }
             else -> mostrarDialogo = true
         }
@@ -133,13 +148,23 @@ fun DisponibilidadScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Southbound Field", fontSize = 11.sp, color = TextoGris, fontWeight = FontWeight.Bold)
-                        Text("Disponibilidad", fontSize = 20.sp, color = TextoOscuro, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.subtitulo_app),
+                            fontSize = 11.sp,
+                            color = TextoGris,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.titulo_disponibilidad),
+                            fontSize = 20.sp,
+                            color = TextoOscuro,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToNotificaciones) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = TextoOscuro)
+                        Icon(Icons.Default.Notifications, contentDescription = null, tint = TextoOscuro)
                     }
                     Box(
                         modifier = Modifier
@@ -181,12 +206,26 @@ fun DisponibilidadScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.DateRange, contentDescription = null, tint = AzulPrincipal, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Control de turnos", color = AzulPrincipal, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text(
+                            text = stringResource(R.string.control_turnos),
+                            color = AzulPrincipal,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Mi disponibilidad", color = TextoOscuro, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text(
+                        text = stringResource(R.string.mi_disponibilidad),
+                        color = TextoOscuro,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Gestiona tus jornadas activas y descansos programados en ruta.", color = TextoGris, fontSize = 14.sp)
+                    Text(
+                        text = stringResource(R.string.subtitulo_disponibilidad),
+                        color = TextoGris,
+                        fontSize = 14.sp
+                    )
                 }
             }
 
@@ -211,7 +250,8 @@ fun DisponibilidadScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = if (isDisponible) "Disponible para nuevas asignaciones" else "No disponible",
+                                    text = if (isDisponible) stringResource(R.string.disponible_nuevas)
+                                    else stringResource(R.string.no_disponible),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = TextoOscuro
@@ -219,7 +259,8 @@ fun DisponibilidadScreen(
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = if (isDisponible) "El equipo de despacho podrá asignarte nuevos servicios." else "No recibirás nuevas asignaciones.",
+                                text = if (isDisponible) stringResource(R.string.desc_disponible)
+                                else stringResource(R.string.desc_no_disponible),
                                 fontSize = 12.sp,
                                 color = TextoGris
                             )
@@ -233,6 +274,29 @@ fun DisponibilidadScreen(
                 }
             }
 
+            // Aviso regla operativa de 7 días
+            item {
+                Surface(
+                    color = AzulSecundario,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Info, contentDescription = null, tint = AzulPrincipal, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.regla_7_dias),
+                            fontSize = 12.sp,
+                            color = AzulPrincipal,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
             item {
                 CalendarCard(
                     mes = mes,
@@ -240,7 +304,8 @@ fun DisponibilidadScreen(
                     hoy = hoy,
                     fechaSeleccionada = fechaSeleccionada,
                     onSeleccionar = { fechaSeleccionada = it },
-                    tiposPorFecha = tiposPorFecha
+                    tiposPorFecha = tiposPorFecha,
+                    locale = localeActual
                 )
             }
 
@@ -249,15 +314,14 @@ fun DisponibilidadScreen(
                     val seleccionada = fechaSeleccionada
                     if (seleccionada != null) {
                         val tipo = tiposPorFecha[seleccionada]
-                        val estado = if (tipo != null) estiloDe(tipo).etiqueta else "Disponible"
+                        val estado = if (tipo != null) stringResource(estiloDe(tipo).etiquetaRes)
+                        else stringResource(R.string.estado_disponible)
                         Text(
-                            text = "${fechaLarga(seleccionada)}\nEstado: $estado",
+                            text = "${fechaLarga(seleccionada, localeActual)}\n$estado",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextoOscuro
                         )
-                    } else {
-                        Text("Toca un día del calendario para ver su estado.", fontSize = 13.sp, color = TextoGris)
                     }
 
                     OutlinedButton(
@@ -274,7 +338,8 @@ fun DisponibilidadScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            if (yaBloqueado) "Desbloquear día seleccionado" else "Bloquear día seleccionado",
+                            text = if (yaBloqueado) stringResource(R.string.desbloquear_dia_btn)
+                            else stringResource(R.string.bloquear_dia_btn),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -287,9 +352,14 @@ fun DisponibilidadScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Próximos bloqueos", fontWeight = FontWeight.Bold, color = TextoOscuro, fontSize = 16.sp)
                     Text(
-                        if (bloqueos.size == 1) "1 registro" else "${bloqueos.size} registros",
+                        text = stringResource(R.string.proximos_bloqueos),
+                        fontWeight = FontWeight.Bold,
+                        color = TextoOscuro,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "${bloqueos.size}",
                         color = TextoGris,
                         fontSize = 12.sp
                     )
@@ -298,16 +368,17 @@ fun DisponibilidadScreen(
 
             if (bloqueosOrdenados.isEmpty()) {
                 item {
-                    Text("No tienes días bloqueados.", fontSize = 13.sp, color = TextoGris)
+                    Text(stringResource(R.string.sin_dias_bloqueados), fontSize = 13.sp, color = TextoGris)
                 }
             }
 
             items(bloqueosOrdenados, key = { it.fecha.toEpochDay() }) { bloqueo ->
                 BloqueoCard(
                     bloqueo = bloqueo,
+                    locale = localeActual,
                     onDesbloquear = {
                         bloqueos.remove(bloqueo)
-                        scope.launch { snackbarHostState.showSnackbar("Día desbloqueado") }
+                        scope.launch { snackbarHostState.showSnackbar(msgDesbloqueado) }
                     }
                 )
             }
@@ -318,11 +389,11 @@ fun DisponibilidadScreen(
         if (mostrarDialogo) {
             fechaSeleccionada?.let { fecha ->
                 MotivoBloqueoDialog(
-                    fechaTexto = fechaLarga(fecha),
+                    fechaTexto = fechaLarga(fecha, localeActual),
                     onConfirmar = { motivo ->
                         bloqueos.add(Bloqueo(fecha, motivo))
                         mostrarDialogo = false
-                        scope.launch { snackbarHostState.showSnackbar("Día bloqueado") }
+                        scope.launch { snackbarHostState.showSnackbar(msgBloqueado) }
                     },
                     onCancelar = { mostrarDialogo = false }
                 )
@@ -332,7 +403,7 @@ fun DisponibilidadScreen(
 }
 
 @Composable
-private fun BloqueoCard(bloqueo: Bloqueo, onDesbloquear: () -> Unit) {
+private fun BloqueoCard(bloqueo: Bloqueo, locale: Locale, onDesbloquear: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -351,12 +422,12 @@ private fun BloqueoCard(bloqueo: Bloqueo, onDesbloquear: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(fechaLarga(bloqueo.fecha), fontWeight = FontWeight.Bold, color = TextoOscuro)
+                Text(fechaLarga(bloqueo.fecha, locale), fontWeight = FontWeight.Bold, color = TextoOscuro)
                 Text(bloqueo.motivo, fontSize = 12.sp, color = TextoGris)
                 Spacer(modifier = Modifier.height(4.dp))
                 Surface(color = AzulSecundario, shape = RoundedCornerShape(6.dp)) {
                     Text(
-                        "Día completo",
+                        text = stringResource(R.string.dia_completo),
                         color = AzulPrincipal,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -365,7 +436,7 @@ private fun BloqueoCard(bloqueo: Bloqueo, onDesbloquear: () -> Unit) {
                 }
             }
             IconButton(onClick = onDesbloquear) {
-                Icon(Icons.Default.Close, contentDescription = "Desbloquear día", tint = TextoGris)
+                Icon(Icons.Default.Close, contentDescription = null, tint = TextoGris)
             }
         }
     }
@@ -382,28 +453,26 @@ private fun MotivoBloqueoDialog(
 
     AlertDialog(
         onDismissRequest = onCancelar,
-        title = { Text("Bloquear día") },
+        title = { Text(stringResource(R.string.bloquear_dia_btn)) },
         text = {
             Column {
-                Text("$fechaTexto. Indica el motivo para que coordinación lo sepa.", fontSize = 13.sp, color = TextoGris)
+                Text(fechaTexto, fontSize = 13.sp, color = TextoGris)
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = motivo,
                     onValueChange = { motivo = it; error = null },
-                    label = { Text("Motivo") },
+                    label = { Text("Motivo / Reason") },
                     isError = error != null,
-                    supportingText = { error?.let { Text(it) } },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                if (motivo.isBlank()) error = "Ingresa el motivo del bloqueo"
-                else onConfirmar(motivo.trim())
-            }) { Text("Bloquear") }
+                if (motivo.isNotBlank()) onConfirmar(motivo.trim())
+            }) { Text("OK") }
         },
-        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } }
+        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancel") } }
     )
 }
 
@@ -414,12 +483,19 @@ private fun CalendarCard(
     hoy: LocalDate,
     fechaSeleccionada: LocalDate?,
     onSeleccionar: (LocalDate) -> Unit,
-    tiposPorFecha: Map<LocalDate, TipoDia>
+    tiposPorFecha: Map<LocalDate, TipoDia>,
+    locale: Locale
 ) {
-    val mesNombre = mes.month.getDisplayName(TextStyle.FULL, localeCl).replaceFirstChar { it.uppercase() }
+    val mesNombre = mes.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
 
     val servicios = tiposPorFecha.count { (fecha, tipo) ->
         YearMonth.from(fecha) == mes && tipo != TipoDia.BLOQUEADO
+    }
+
+    val diasSemana = if (locale.language == "en") {
+        listOf("M", "T", "W", "T", "F", "S", "S")
+    } else {
+        listOf("L", "M", "M", "J", "V", "S", "D")
     }
 
     Card(
@@ -439,7 +515,7 @@ private fun CalendarCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Surface(color = AzulSecundario, shape = RoundedCornerShape(16.dp)) {
                         Text(
-                            if (servicios == 1) "1 servicio" else "$servicios servicios",
+                            text = "$servicios",
                             color = AzulPrincipal,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
@@ -449,10 +525,10 @@ private fun CalendarCard(
                 }
                 Row {
                     IconButton(onClick = { onMesChange(mes.minusMonths(1)) }, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Mes anterior", tint = TextoGris)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = TextoGris)
                     }
                     IconButton(onClick = { onMesChange(mes.plusMonths(1)) }, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Mes siguiente", tint = TextoOscuro)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = TextoOscuro)
                     }
                 }
             }
@@ -460,7 +536,7 @@ private fun CalendarCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                listOf("L", "M", "M", "J", "V", "S", "D").forEach { dia ->
+                diasSemana.forEach { dia ->
                     Text(
                         dia,
                         color = TextoGris,
@@ -502,18 +578,18 @@ private fun CalendarCard(
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    ItemLeyenda(Modifier.weight(1f), "Servicio pendiente") {
+                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.estado_pendiente)) {
                         PuntoColor(estiloDe(TipoDia.SERVICIO_PENDIENTE).indicador)
                     }
-                    ItemLeyenda(Modifier.weight(1f), "Servicio confirmado") {
+                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.estado_confirmado)) {
                         PuntoColor(estiloDe(TipoDia.SERVICIO_CONFIRMADO).indicador)
                     }
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    ItemLeyenda(Modifier.weight(1f), "Bloqueado") {
+                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.estado_bloqueado)) {
                         Icon(Icons.Default.Close, contentDescription = null, tint = RojoTextoRechazar, modifier = Modifier.size(12.dp))
                     }
-                    ItemLeyenda(Modifier.weight(1f), "Hoy") {
+                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.leyenda_hoy)) {
                         Box(modifier = Modifier.size(10.dp).border(1.5.dp, AzulPrincipal, CircleShape))
                     }
                 }
@@ -573,7 +649,7 @@ private fun RowScope.DiaCalendario(
 
         when (tipo) {
             TipoDia.BLOQUEADO ->
-                Icon(Icons.Default.Close, contentDescription = "Bloqueado", tint = RojoTextoRechazar, modifier = Modifier.size(8.dp))
+                Icon(Icons.Default.Close, contentDescription = null, tint = RojoTextoRechazar, modifier = Modifier.size(8.dp))
             null ->
                 Box(modifier = Modifier.size(4.dp))
             else ->

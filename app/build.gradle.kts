@@ -40,6 +40,12 @@ android {
             "\"${localProperties.getProperty("LINCE_API_KEY", "")}\""
         )
 
+        buildConfigField(
+            "String",
+            "LINCE_BASE_URL",
+            localProperties.getProperty("LINCE_BASE_URL")?:"\"https://ws.southbound.travel/lince-api/\""
+        )
+
         val insforgeUrl = localProperties.getProperty("INSFORGE_URL") ?: ""
         val insforgeAnonKey = localProperties.getProperty("INSFORGE_ANON_KEY") ?: ""
         buildConfigField("String", "INSFORGE_URL", "\"$insforgeUrl\"")

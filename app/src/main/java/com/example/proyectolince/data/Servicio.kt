@@ -74,8 +74,10 @@ fun ServicioLinceDto.toServicioUi(): Servicio {
         ?: this.pax?.texto?.split("+")?.sumOf { it.trim().toIntOrNull() ?: 0 }
         ?: 0
 
+
+
     return Servicio(
-        id = this.id,
+        id = this.id.toString(),
         tipo = tipoMapeado,
         estado = estadoMapeado,
         fecha = this.fecha,
@@ -83,8 +85,8 @@ fun ServicioLinceDto.toServicioUi(): Servicio {
         titulo = tituloFinal,
         referencia = infoSubtitulo,
         pasajeros = totalPasajeros,
-        transportistaId = this.transportista?.id ?: this.transportista?.nombre,
-        guiaId = this.guia?.id ?: this.guia?.nombre,
+        transportistaId = this.transportista?.id?.toString() ?: this.transportista?.nombre,
+        guiaId = this.guia?.id?.toString() ?: this.guia?.nombre,
         imagen = if (tipoMapeado == TipoServicio.EXCURSION) R.drawable.volcan_osorno else null
     )
 }

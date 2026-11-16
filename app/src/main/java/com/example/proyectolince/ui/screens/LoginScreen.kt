@@ -1,7 +1,9 @@
 package com.example.proyectolince.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -30,18 +33,18 @@ import com.example.proyectolince.R
 import com.example.proyectolince.ui.theme.*
 import com.example.proyectolince.ui.viewmodel.LoginViewModel
 
-enum class Rol(val etiqueta: String, val icono: ImageVector){
-    DRIVER("Driver", Icons.Default.DirectionsCar),
-    GUIA("Guía", Icons.Default.Explore),
-    COORDINADOR("Coordinador", Icons.Default.Hub)
+enum class Rol(val etiqueta: String, @StringRes val etiquetaRes: Int, val icono: ImageVector) {
+    DRIVER("Driver", R.string.rol_driver, Icons.Default.DirectionsCar),
+    GUIA("Guía", R.string.rol_guia, Icons.Default.Explore),
+    COORDINADOR("Coordinador", R.string.rol_coordinador, Icons.Default.Hub)
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
+    idiomaActual: String = "es",
+    onCambiarIdioma: (String) -> Unit = {},
     onLoginSuccess: (Rol) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -67,10 +70,23 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
+                // Barra superior con selector compacto de idioma ES | EN
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SelectorIdiomaCompacto(
+                        idiomaActual = idiomaActual,
+                        onCambiarIdioma = onCambiarIdioma
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Logo y Encabezado
                 Image(
@@ -82,7 +98,7 @@ fun LoginScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Southbound Field",
+                    text = stringResource(R.string.subtitulo_app),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoOscuro
@@ -96,7 +112,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Operaciones y asignaciones",
+                        text = stringResource(R.string.login_subtitulo),
                         fontSize = 13.sp,
                         color = TextoGris,
                         fontWeight = FontWeight.Medium
@@ -115,7 +131,7 @@ fun LoginScreen(
                         modifier = Modifier.padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Rol.values().forEach { rol ->
+                        Rol.entries.forEach { rol ->
                             RolTab(
                                 rol = rol,
                                 seleccionado = uiState.rolSeleccionado == rol,
@@ -130,7 +146,7 @@ fun LoginScreen(
                 // Campo Correo
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "CORREO",
+                        text = stringResource(R.string.login_correo),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextoGris,
@@ -167,7 +183,7 @@ fun LoginScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "CONTRASEÑA",
+                            text = stringResource(R.string.login_password),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextoGris
@@ -177,7 +193,7 @@ fun LoginScreen(
                             contentPadding = PaddingValues(0.dp)
                         ) {
                             Text(
-                                text = "¿Olvidaste tu contraseña?",
+                                text = stringResource(R.string.login_olvido),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = AzulPrincipal
@@ -196,7 +212,7 @@ fun LoginScreen(
                             IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                                 Icon(
                                     imageVector = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = if (uiState.isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                                    contentDescription = null,
                                     tint = TextoGris
                                 )
                             }
@@ -236,13 +252,12 @@ fun LoginScreen(
                     }
                 }
 
-
                 Spacer(modifier = Modifier.weight(1f, fill = false))
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Botón Iniciar Sesión
                 Button(
-                    onClick = {viewModel.iniciarSesion()},
+                    onClick = { viewModel.iniciarSesion() },
                     enabled = !uiState.isLoading,
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
@@ -250,19 +265,16 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
-
-
-                ){
-                    if (uiState.isLoading){
+                ) {
+                    if (uiState.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
                             color = Color.White,
                             strokeWidth = 2.dp
                         )
-
                     } else {
                         Text(
-                            text = "Iniciar sesión",
+                            text = stringResource(R.string.login_btn),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -275,6 +287,51 @@ fun LoginScreen(
                             modifier = Modifier.size(18.dp)
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectorIdiomaCompacto(
+    idiomaActual: String,
+    onCambiarIdioma: (String) -> Unit
+) {
+    Surface(
+        color = Color.White,
+        shape = RoundedCornerShape(20.dp),
+        shadowElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Language,
+                contentDescription = null,
+                tint = AzulPrincipal,
+                modifier = Modifier
+                    .padding(start = 6.dp, end = 2.dp)
+                    .size(15.dp)
+            )
+            listOf("es" to "ES", "en" to "EN").forEach { (codigo, etiqueta) ->
+                val activo = idiomaActual.equals(codigo, ignoreCase = true)
+                Surface(
+                    color = if (activo) AzulPrincipal else Color.Transparent,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { onCambiarIdioma(codigo) }
+                ) {
+                    Text(
+                        text = etiqueta,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (activo) Color.White else TextoGris,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
             }
         }
@@ -302,6 +359,11 @@ private fun RowScope.RolTab(
     ) {
         Icon(rol.icono, contentDescription = null, modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text(rol.etiqueta, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(
+            text = stringResource(rol.etiquetaRes),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
+        )
     }
 }

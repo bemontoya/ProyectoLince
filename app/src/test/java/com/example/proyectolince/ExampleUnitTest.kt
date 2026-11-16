@@ -46,22 +46,22 @@ class ExampleUnitTest {
     fun validarAsignacionRecurso_cumpleReglasDeNegocioLince() {
         val jsonTransferValido = """
             {
-              "id": "SRV-001",
+              "id": 1001,
               "codigo": "SRV-001",
               "tipo": "TRANSFER",
               "estado": "CF",
-              "transportista": { "id": "TRP-01", "nombre": "Juan Pérez" },
+              "transportista": { "id": "101", "nombre": "Juan Pérez" },
               "guia": null
             }
         """.trimIndent()
 
         val jsonGuiadoSinGuia = """
             {
-              "id": "SRV-002",
+              "id": 1002,
               "codigo": "SRV-002",
               "tipo": "GUIDED_SERVICE",
               "estado": "CF",
-              "transportista": { "id": "TRP-01", "nombre": "Juan Pérez" },
+              "transportista": { "id": "101", "nombre": "Juan Pérez" },
               "guia": null
             }
         """.trimIndent()
