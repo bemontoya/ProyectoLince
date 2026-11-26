@@ -21,17 +21,21 @@ object BackendClient {
         }
 
         val client = OkHttpClient.Builder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(90, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(90, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .addInterceptor { chain ->
                 val original = chain.request()
-                val bearerToken = runBlocking { sessionManager.getBearerToken() }
                 val requestBuilder = original.newBuilder()
                     .header("Content-Type", "application/json")
 
-                if (!bearerToken.isNullOrBlank()) {
-                    requestBuilder.header("Authorization", bearerToken)
+                // Evitar leer DataStore en el login donde aún no existe token
+                if (!original.url.encodedPath.contains("/api/auth/login")) {
+                    val bearerToken = runBlocking { sessionManager.getBearerToken() }
+                    if (!bearerToken.isNullOrBlank()) {
+                        requestBuilder.header("Authorization", bearerToken)
+                    }
                 }
 
                 chain.proceed(requestBuilder.build())

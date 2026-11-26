@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,15 +34,30 @@ import com.example.proyectolince.data.TipoServicio
 import com.example.proyectolince.ui.theme.*
 import com.example.proyectolince.ui.viewmodel.ServiciosViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
-private data class OpcionFiltro(@StringRes val nombreRes: Int, val estado: EstadoServicio?)
+private data class OpcionFiltroEstado(@StringRes val nombreRes: Int, val estado: EstadoServicio?)
 
-private val opcionesFiltro = listOf(
-    OpcionFiltro(R.string.filtro_todos, null),
-    OpcionFiltro(R.string.filtro_pendientes, EstadoServicio.PENDIENTE),
-    OpcionFiltro(R.string.filtro_confirmados, EstadoServicio.CONFIRMADO),
-    OpcionFiltro(R.string.filtro_rechazados, EstadoServicio.RECHAZADO)
+private val opcionesFiltroEstado = listOf(
+    OpcionFiltroEstado(R.string.filtro_todos, null),
+    OpcionFiltroEstado(R.string.filtro_pendientes, EstadoServicio.PENDIENTE),
+    OpcionFiltroEstado(R.string.filtro_confirmados, EstadoServicio.CONFIRMADO),
+    OpcionFiltroEstado(R.string.filtro_rechazados, EstadoServicio.RECHAZADO)
 )
+
+private data class OpcionFiltroTipo(val etiqueta: String, val tipo: TipoServicio?)
+
+private val opcionesFiltroTipo = listOf(
+    OpcionFiltroTipo("ALL", null),
+    OpcionFiltroTipo("TRANSFER", TipoServicio.TRANSFER),
+    OpcionFiltroTipo("GUIDED_SERVICE", TipoServicio.GUIADO),
+    OpcionFiltroTipo("EXCURSION", TipoServicio.EXCURSION)
+)
+
+private enum class ModoFecha { HOY, TODAS, FECHA_ESPECIFICA }
 
 private data class ColoresEstado(val franja: Color, val fondoBadge: Color, val textoBadge: Color)
 
@@ -86,6 +102,21 @@ private fun parsearReferenciaGuia(referencia: String): DatosGuiaParseados {
     )
 }
 
+private fun obtenerFechaHoyIso(): String =
+    SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+private fun coincideFecha(fechaServicio: String, fechaObjetivoIso: String): Boolean {
+    val limpia = fechaServicio.trim()
+    if (limpia.startsWith(fechaObjetivoIso)) return true
+    val partes = fechaObjetivoIso.split("-")
+    if (partes.size == 3) {
+        val dmySlash = "${partes[2]}/${partes[1]}/${partes[0]}"
+        val dmyDash = "${partes[2]}-${partes[1]}-${partes[0]}"
+        if (limpia.startsWith(dmySlash) || limpia.startsWith(dmyDash)) return true
+    }
+    return false
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServiciosScreen(
@@ -99,8 +130,15 @@ fun ServiciosScreen(
     onNavigateToNotificaciones: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var filtro by remember { mutableStateOf<EstadoServicio?>(null) }
+    var filtroEstado by remember { mutableStateOf<EstadoServicio?>(null) }
+    var filtroTipo by remember { mutableStateOf<TipoServicio?>(null) }
+    var modoFecha by remember { mutableStateOf(ModoFecha.TODAS) }
+    val fechaHoyIso = remember { obtenerFechaHoyIso() }
+    var fechaSeleccionadaIso by remember { mutableStateOf(fechaHoyIso) }
+    var mostrarCalendario by remember { mutableStateOf(false) }
+
     var servicioARechazar by remember { mutableStateOf<Servicio?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -109,14 +147,34 @@ fun ServiciosScreen(
     val esCoordinador = rolUsuario.equals("COORDINADOR", ignoreCase = true)
 
     LaunchedEffect(rolUsuario, idUsuario) {
-        viewModel.cargarServiciosPorRol(rolUsuario = rolUsuario, idUsuario = idUsuario)
+        viewModel.cargarServiciosPorRol(
+            rolUsuario = rolUsuario,
+            idUsuario = idUsuario,
+            context = context
+        )
     }
 
     val servicios = uiState.servicios
-    val filtroActual = filtro
-    val serviciosFiltrados =
-        if (filtroActual == null) servicios
-        else servicios.filter { it.estado == filtroActual }
+
+    val fechasDisponibles = remember(servicios) {
+        servicios.map { it.fecha.substringBefore("T").substringBefore(" ").trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    }
+
+    val serviciosFiltrados = remember(servicios, filtroEstado, filtroTipo, modoFecha, fechaSeleccionadaIso) {
+        servicios.filter { s ->
+            val okEstado = filtroEstado == null || s.estado == filtroEstado
+            val okTipo = filtroTipo == null || s.tipo == filtroTipo
+            val okFecha = when (modoFecha) {
+                ModoFecha.TODAS -> true
+                ModoFecha.HOY -> coincideFecha(s.fecha, fechaHoyIso)
+                ModoFecha.FECHA_ESPECIFICA -> coincideFecha(s.fecha, fechaSeleccionadaIso)
+            }
+            okEstado && okTipo && okFecha
+        }
+    }
 
     Scaffold(
         containerColor = FondoPantalla,
@@ -144,7 +202,10 @@ fun ServiciosScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario) }) {
+                    IconButton(onClick = { mostrarCalendario = true }) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Calendario", tint = AzulPrincipal)
+                    }
+                    IconButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario, context) }) {
                         Icon(Icons.Default.Refresh, contentDescription = null, tint = TextoOscuro)
                     }
                     IconButton(onClick = onNavigateToNotificaciones) {
@@ -172,7 +233,7 @@ fun ServiciosScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
                 Row(
@@ -209,18 +270,145 @@ fun ServiciosScreen(
                 }
             }
 
+            if (uiState.modoOffline) {
+                item {
+                    Surface(
+                        color = NaranjaFondoBadge,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudOff,
+                                contentDescription = null,
+                                tint = NaranjaPendiente,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Modo sin conexión • Mostrando datos guardados en caché",
+                                color = NaranjaPendiente,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 1. FILTRO DE FECHA: Vista «Hoy», Todas, Fechas rápidas y Calendario
+            item {
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val countHoy = servicios.count { coincideFecha(it.fecha, fechaHoyIso) }
+                    FilterChip(
+                        selected = modoFecha == ModoFecha.HOY,
+                        onClick = {
+                            modoFecha = ModoFecha.HOY
+                            fechaSeleccionadaIso = fechaHoyIso
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Today, contentDescription = null, modifier = Modifier.size(16.dp))
+                        },
+                        label = { Text("Hoy ($countHoy)", maxLines = 1) },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AzulPrincipal,
+                            selectedLabelColor = Color.White,
+                            selectedLeadingIconColor = Color.White
+                        )
+                    )
+
+                    FilterChip(
+                        selected = modoFecha == ModoFecha.TODAS,
+                        onClick = { modoFecha = ModoFecha.TODAS },
+                        label = { Text("Todas (${servicios.size})", maxLines = 1) },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AzulPrincipal,
+                            selectedLabelColor = Color.White
+                        )
+                    )
+
+                    FilterChip(
+                        selected = modoFecha == ModoFecha.FECHA_ESPECIFICA,
+                        onClick = { mostrarCalendario = true },
+                        leadingIcon = {
+                            Icon(Icons.Default.Event, contentDescription = null, modifier = Modifier.size(16.dp))
+                        },
+                        label = {
+                            Text(
+                                if (modoFecha == ModoFecha.FECHA_ESPECIFICA) fechaSeleccionadaIso else "Calendario",
+                                maxLines = 1
+                            )
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AzulPrincipal,
+                            selectedLabelColor = Color.White,
+                            selectedLeadingIconColor = Color.White
+                        )
+                    )
+
+                    fechasDisponibles.filter { it != fechaHoyIso }.forEach { fechaItem ->
+                        FilterChip(
+                            selected = modoFecha == ModoFecha.FECHA_ESPECIFICA && fechaSeleccionadaIso == fechaItem,
+                            onClick = {
+                                fechaSeleccionadaIso = fechaItem
+                                modoFecha = ModoFecha.FECHA_ESPECIFICA
+                            },
+                            label = { Text(fechaItem, maxLines = 1) },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AzulPrincipal,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+
+            // 2. FILTRO POR TIPO DE SERVICIO (TRANSFER, GUIDED_SERVICE, EXCURSION)
             item {
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    opcionesFiltro.forEach { opcion ->
+                    opcionesFiltroTipo.forEach { opcion ->
+                        val cantidad = if (opcion.tipo == null) servicios.size else servicios.count { it.tipo == opcion.tipo }
+                        FilterChip(
+                            selected = filtroTipo == opcion.tipo,
+                            onClick = { filtroTipo = opcion.tipo },
+                            label = { Text("${opcion.etiqueta} ($cantidad)", fontSize = 12.sp, maxLines = 1) },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = VerdeConfirmado,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+
+            // 3. FILTRO POR ESTADO (Todos, Pendientes, Confirmados, Rechazados)
+            item {
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    opcionesFiltroEstado.forEach { opcion ->
                         val cantidad = if (opcion.estado == null) servicios.size else servicios.count { it.estado == opcion.estado }
                         val etiquetaFiltro = stringResource(opcion.nombreRes)
                         FilterChip(
-                            selected = filtro == opcion.estado,
-                            onClick = { filtro = opcion.estado },
-                            label = { Text("$etiquetaFiltro $cantidad", maxLines = 1) },
+                            selected = filtroEstado == opcion.estado,
+                            onClick = { filtroEstado = opcion.estado },
+                            label = { Text("$etiquetaFiltro $cantidad", fontSize = 12.sp, maxLines = 1) },
                             shape = RoundedCornerShape(20.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AzulPrincipal,
@@ -263,7 +451,7 @@ fun ServiciosScreen(
                                 fontSize = 12.sp
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            TextButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario) }) {
+                            TextButton(onClick = { viewModel.cargarServiciosPorRol(rolUsuario, idUsuario, context) }) {
                                 Text("Retry", color = RojoTextoRechazar, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -271,12 +459,28 @@ fun ServiciosScreen(
                 }
             } else if (serviciosFiltrados.isEmpty()) {
                 item {
-                    Text(
-                        text = stringResource(R.string.sin_servicios),
-                        fontSize = 13.sp,
-                        color = TextoGris,
-                        modifier = Modifier.padding(vertical = 24.dp)
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.sin_servicios),
+                            fontSize = 13.sp,
+                            color = TextoGris
+                        )
+                        if (filtroEstado != null || filtroTipo != null || modoFecha != ModoFecha.TODAS) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextButton(onClick = {
+                                filtroEstado = null
+                                filtroTipo = null
+                                modoFecha = ModoFecha.TODAS
+                            }) {
+                                Text("Limpiar filtros", color = AzulPrincipal, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                 }
             } else {
                 items(serviciosFiltrados, key = { it.id }) { servicio ->
@@ -333,6 +537,34 @@ fun ServiciosScreen(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
+        }
+    }
+
+    if (mostrarCalendario) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { mostrarCalendario = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
+                        fechaSeleccionadaIso = sdf.format(Date(millis))
+                        modoFecha = ModoFecha.FECHA_ESPECIFICA
+                    }
+                    mostrarCalendario = false
+                }) {
+                    Text("OK", fontWeight = FontWeight.Bold, color = AzulPrincipal)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarCalendario = false }) {
+                    Text("Cancel", color = TextoGris)
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 

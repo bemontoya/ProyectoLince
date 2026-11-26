@@ -1,7 +1,7 @@
 package com.example.proyectolince.data
 
-import com.example.proyectolince.data.network.InsForgeLoginRequest
-import com.example.proyectolince.data.network.InsForgeRetrofitInstance
+import com.example.proyectolince.data.network.BackendLoginRequest
+import com.example.proyectolince.data.network.BackendRetrofitInstance
 import com.example.proyectolince.ui.screens.Rol
 
 class AuthRepository(
@@ -9,8 +9,8 @@ class AuthRepository(
 ) {
 
     suspend fun iniciarSesion(correo: String, clave: String): Rol? {
-        val response = InsForgeRetrofitInstance.api.login(
-            request = InsForgeLoginRequest(
+        val response = BackendRetrofitInstance.api.login(
+            request = BackendLoginRequest(
                 email = correo.trim(),
                 password = clave
             )
@@ -21,13 +21,7 @@ class AuthRepository(
         }
 
         val data = response.body()!!
-        val user = data.user
-        val meta = user.userMetadata
-
-
-        val rolTexto = (meta?.rol ?: user.name ?: user.email.substringBefore("@"))
-            .uppercase()
-            .trim()
+        val rolTexto = data.rol.uppercase().trim()
 
         val rolAsignado = when {
             rolTexto.contains("COORD") -> Rol.COORDINADOR
@@ -36,21 +30,17 @@ class AuthRepository(
             else -> return null
         }
 
-
-        val recursoId = meta?.recursoId?.takeIf { it.isNotBlank() } ?: when (rolAsignado) {
+        val recursoId = data.linceStaffId?.takeIf { it.isNotBlank() } ?: when (rolAsignado) {
             Rol.DRIVER -> "TRP-01"
             Rol.GUIA -> "GUI-01"
             Rol.COORDINADOR -> null
         }
 
-        val nombreMostrar = meta?.nombre
-            ?: user.name
-            ?: rolAsignado.etiqueta
-
+        val nombreMostrar = data.nombre.ifBlank { rolAsignado.etiqueta }
 
         sessionManager?.saveSession(
-            token = data.accessToken,
-            email = user.email,
+            token = data.token,
+            email = data.email,
             nombre = nombreMostrar,
             rol = rolAsignado.name,
             recursoId = recursoId

@@ -2,11 +2,34 @@ package com.southbound.proyectolince.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class SessionManager(context: Context) {
 
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("lince_session_prefs", Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences("lince_session_prefs", Context.MODE_PRIVATE)
+
+    companion object {
+        private val _idiomaFlow = MutableStateFlow("es")
+        val idiomaFlow: StateFlow<String> = _idiomaFlow.asStateFlow()
+    }
+
+    init {
+        val guardado = prefs.getString("app_idioma", "es") ?: "es"
+        if (_idiomaFlow.value != guardado) {
+            _idiomaFlow.value = guardado
+        }
+    }
+
+    fun setIdioma(codigo: String) {
+        val normalizado = if (codigo.lowercase().startsWith("en")) "en" else "es"
+        prefs.edit().putString("app_idioma", normalizado).apply()
+        _idiomaFlow.value = normalizado
+    }
+
+    fun getIdioma(): String = prefs.getString("app_idioma", "es") ?: "es"
 
     fun saveSession(
         token: String,
@@ -50,6 +73,7 @@ class SessionManager(context: Context) {
     fun isLoggedIn(): Boolean = !getToken().isNullOrBlank()
 
     fun clearSession() {
-        prefs.edit().clear().apply()
+        val idiomaActual = getIdioma()
+        prefs.edit().clear().putString("app_idioma", idiomaActual).apply()
     }
 }

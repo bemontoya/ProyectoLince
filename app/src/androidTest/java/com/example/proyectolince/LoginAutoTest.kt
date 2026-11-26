@@ -22,7 +22,7 @@ class LoginAutoTest {
 
     @Test
     fun flujoLoginAutomatico_driverIniciaSesionYEntraAServicios() {
-        // Espera a que cargue la pantalla de Login
+
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule.onAllNodesWithText("Iniciar Sesión", substring = true, ignoreCase = true)
                 .fetchSemanticsNodes().isNotEmpty()

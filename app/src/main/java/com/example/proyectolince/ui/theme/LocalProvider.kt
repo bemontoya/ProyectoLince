@@ -3,6 +3,7 @@ package com.example.proyectolince.ui.theme
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -14,11 +15,14 @@ fun ProveedorIdioma(
     content: @Composable () -> Unit
 ) {
     val contextOriginal = LocalContext.current
+    val baseConfig = LocalConfiguration.current
+    val cleanCode = if (codigoIdioma.lowercase().startsWith("en")) "en" else "es"
 
-    val nuevaConfig = remember(codigoIdioma, contextOriginal) {
-        val locale = Locale.forLanguageTag(codigoIdioma)
+    val nuevaConfig = remember(cleanCode, baseConfig) {
+        val locale = Locale.forLanguageTag(cleanCode)
         Locale.setDefault(locale)
-        Configuration(contextOriginal.resources.configuration).apply {
+
+        Configuration(baseConfig).apply {
             setLocale(locale)
             setLayoutDirection(locale)
         }
@@ -27,10 +31,11 @@ fun ProveedorIdioma(
     @Suppress("DEPRECATION")
     contextOriginal.resources.updateConfiguration(nuevaConfig, contextOriginal.resources.displayMetrics)
 
-    CompositionLocalProvider(
-        LocalConfiguration provides nuevaConfig,
-        LocalContext provides contextOriginal
-    ) {
-        content()
+    key(cleanCode) {
+        CompositionLocalProvider(
+            LocalConfiguration provides nuevaConfig
+        ) {
+            content()
+        }
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectolince.R
+import com.example.proyectolince.data.network.BackendRetrofitInstance
 import com.example.proyectolince.ui.theme.*
 import com.example.proyectolince.ui.viewmodel.LoginViewModel
 
@@ -49,6 +50,11 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+
+    // Despierta el backend en Render apenas se muestra LoginScreen
+    LaunchedEffect(Unit) {
+        BackendRetrofitInstance.despertarServidorEnSegundoPlano()
+    }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {

@@ -57,7 +57,6 @@ class DetalleViewModel(
         const val PRECISION_MAXIMA_METROS = 50f
         const val ANTICIPACION_MINIMA_MINUTOS = 15L
 
-        // Catálogo local de hoteles/pickups de respaldo (Anexo B: coordenadas de respaldo cuando pickup es texto)
         private val catalogoGeocercasFallback = listOf(
             GeocercaDto(1L, "Aeropuerto Arturo Merino Benítez", -33.3930, -70.7858, 150.0),
             GeocercaDto(2L, "Hotel W Santiago", -33.4161, -70.6022, 150.0),
@@ -68,18 +67,26 @@ class DetalleViewModel(
         )
     }
 
-    fun cargarServicioYRegistro(servicioId: String) {
+    fun cargarServicioYRegistro(servicioId: String, context: Context? = null) {
         viewModelScope.launch {
             _registroActual.value = repository.obtenerPorCodigo(servicioId)
 
             when (val res = linceRepository.obtenerDetalleServicio(servicioId)) {
                 is ResultadoApi.Exito -> {
+                    context?.let { OfflineLinceCache.guardarDetalle(it, res.datos) }
                     _servicio.value = res.datos
                     _errorServicio.value = null
                     res.datos.pickup?.let { cargarGeocercaLugar(it) }
                 }
                 is ResultadoApi.Error -> {
-                    _errorServicio.value = res.mensaje
+                    val cached = context?.let { OfflineLinceCache.obtenerDetalle(it, servicioId) }
+                    if (cached != null) {
+                        _servicio.value = cached
+                        _errorServicio.value = null
+                        cached.pickup?.let { cargarGeocercaLugar(it) }
+                    } else {
+                        _errorServicio.value = res.mensaje
+                    }
                 }
             }
         }
@@ -101,7 +108,6 @@ class DetalleViewModel(
         } catch (_: Exception) {
         }
 
-        // Respaldo catálogo local si el backend no está disponible o no tiene ese hotel
         if (geocercaEncontrada == null) {
             geocercaEncontrada = catalogoGeocercasFallback.find {
                 it.nombreLugar.contains(nombreLugar.trim(), ignoreCase = true) ||
@@ -130,12 +136,6 @@ class DetalleViewModel(
         )
     }
 
-    /**
-     * Evalúa las 3 reglas operativas de Southbound (Anexo B):
-     * 1. Precisión GPS <= 50 m
-     * 2. Distancia <= radio de geocerca (150 m)
-     * 3. Llegada con al menos 15 minutos de anticipación respecto a horaPickupProgramada
-     */
     fun evaluarReglasCheckIn(
         gps: GpsSnapshot?,
         horaPickupProgramada: String,

@@ -139,10 +139,21 @@ fun DetalleScreen(
         }
     }
 
-    LaunchedEffect(destinoMostrar) {
-        if (destinoMostrar != "---") {
+    val lugarClima = destinoMostrar.takeIf { it.isNotBlank() && it != "---" }
+        ?: origenMostrar.takeIf { it.isNotBlank() && it != "---" }
+
+    val idiomaActual = Locale.getDefault().language
+
+    LaunchedEffect(lugarClima, idiomaActual) {
+        if (lugarClima != null) {
+            temperatura = null
+            condicion = null
             try {
-                val clima = WeatherRetrofitInstance.api.obtenerClima(destinoMostrar, BuildConfig.OPENWEATHER_API_KEY)
+                val clima = WeatherRetrofitInstance.api.obtenerClima(
+                    ciudad = lugarClima,
+                    apiKey = BuildConfig.OPENWEATHER_API_KEY,
+                    idioma = idiomaActual
+                )
                 temperatura = "${clima.main.temp.toInt()}°C"
                 condicion = clima.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }
             } catch (_: Exception) {
@@ -603,7 +614,7 @@ fun DetalleScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
-                                text = "Weather / $destinoMostrar",
+                                text = "Weather / ${lugarClima ?: destinoMostrar}",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = AzulPrincipal

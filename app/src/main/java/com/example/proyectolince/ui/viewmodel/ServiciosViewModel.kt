@@ -1,8 +1,10 @@
 package com.example.proyectolince.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectolince.data.EstadoServicio
+import com.example.proyectolince.data.OfflineLinceCache
 import com.example.proyectolince.data.Servicio
 import com.example.proyectolince.data.SessionManager
 import com.example.proyectolince.data.TipoServicio
@@ -20,7 +22,8 @@ import java.util.UUID
 data class ServiciosUiState(
     val isLoading: Boolean = false,
     val servicios: List<Servicio> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val modoOffline: Boolean = false
 )
 
 class ServiciosViewModel(
@@ -31,38 +34,56 @@ class ServiciosViewModel(
     private val _uiState = MutableStateFlow(ServiciosUiState(isLoading = true))
     val uiState: StateFlow<ServiciosUiState> = _uiState.asStateFlow()
 
-    fun cargarServiciosPorRol(rolUsuario: String, idUsuario: String? = null) {
+    fun cargarServiciosPorRol(
+        rolUsuario: String,
+        idUsuario: String? = null,
+        context: Context? = null
+    ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             when (val resultado = repository.obtenerServicios(page = 1, pageSize = 50)) {
                 is ResultadoApi.Exito -> {
+                    context?.let { OfflineLinceCache.guardarServicios(it, resultado.datos) }
                     val todos = resultado.datos.map { it.toServicioUi() }
-
-                    val filtradosPorRol = when (rolUsuario.uppercase().trim()) {
-                        "DRIVER", "TRANSPORTISTA" -> todos.filter { servicio ->
-                            servicio.tipo == TipoServicio.TRANSFER ||
-                                    servicio.tipo == TipoServicio.EXCURSION
-                        }
-                        "GUIA" -> todos.filter { servicio ->
-                            servicio.tipo == TipoServicio.GUIADO ||
-                                    servicio.tipo == TipoServicio.EXCURSION
-                        }
-                        else -> todos
-                    }
 
                     _uiState.value = ServiciosUiState(
                         isLoading = false,
-                        servicios = filtradosPorRol
+                        servicios = filtrarPorRol(todos, rolUsuario),
+                        modoOffline = false
                     )
                 }
                 is ResultadoApi.Error -> {
-                    _uiState.value = ServiciosUiState(
-                        isLoading = false,
-                        errorMessage = resultado.mensaje
-                    )
+                    val cacheadosDto = context?.let { OfflineLinceCache.obtenerServicios(it) }.orEmpty()
+                    if (cacheadosDto.isNotEmpty()) {
+                        val todos = cacheadosDto.map { it.toServicioUi() }
+                        _uiState.value = ServiciosUiState(
+                            isLoading = false,
+                            servicios = filtrarPorRol(todos, rolUsuario),
+                            modoOffline = true
+                        )
+                    } else {
+                        _uiState.value = ServiciosUiState(
+                            isLoading = false,
+                            errorMessage = resultado.mensaje
+                        )
+                    }
                 }
             }
+        }
+    }
+
+    private fun filtrarPorRol(todos: List<Servicio>, rolUsuario: String): List<Servicio> {
+        return when (rolUsuario.uppercase().trim()) {
+            "DRIVER", "TRANSPORTISTA" -> todos.filter { servicio ->
+                servicio.tipo == TipoServicio.TRANSFER ||
+                        servicio.tipo == TipoServicio.EXCURSION
+            }
+            "GUIA" -> todos.filter { servicio ->
+                servicio.tipo == TipoServicio.GUIADO ||
+                        servicio.tipo == TipoServicio.EXCURSION
+            }
+            else -> todos
         }
     }
 
@@ -81,7 +102,6 @@ class ServiciosViewModel(
         }
         _uiState.value = _uiState.value.copy(servicios = listaActualizada)
 
-        // Persistencia en microservicio Spring Boot propio (POST api/operaciones/confirmaciones)
         val manager = sessionOverride ?: return
         viewModelScope.launch {
             try {
