@@ -64,6 +64,9 @@ Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comun
 
 ---
 
+
+**Este link lleva directo al swagger** : https://proyectolince-backend.onrender.com/swagger-ui/index.html#/
+
 ## Ejecución de tests
 
 ### 1. Pruebas Unitarias (JVM)
