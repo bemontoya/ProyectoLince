@@ -13,36 +13,60 @@
 
 ---
 
-## Documentación de APIs y Servicios Conectados
+## Problemática Identificada
 
-La aplicación opera mediante una arquitectura híbrida que integra los servicios operativos de **Southbound Travel** junto con nuestro microservicio propio en **Spring Boot** desplegado en Render (con sincronización idempotente, geocercas GPS y persistencia local):
+Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comunicación en ruta e ineficiencias en los procesos de Check-in y Check-out debido a la recopilación manual de datos en planillas físicas, la pérdida de conectividad en zonas rurales o cordilleranas y la falta de validación geográfica en terreno.
 
-- **Documentación Interactiva Backend (Swagger UI — Producción):** [Abrir Swagger UI — Proyecto Lince Backend](https://proyectolince-backend.onrender.com/swagger-ui/index.html#/)
+**Solución:** Centralizar la agenda operativa en una app móvil Android con validación de geocerca GPS (150 m), persistencia local con sincronización automática al recuperar señal y trazabilidad en tiempo real hacia los sistemas de coordinación.
 
 ---
 
-## Resumen del Proyecto y Funcionalidades del MVP
+## Arquitectura del Sistema
 
-### Problema Identificado
-Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comunicación en ruta e ineficiencias en los procesos de Check-in/Check-out debido a la recopilación manual de datos y falta de integración con datos meteorológicos y geográficos en terreno.
+La aplicación está construida bajo un enfoque **MVVM (Model - View - ViewModel)** con **Jetpack Compose** y estrategia **Offline-First**:
 
-### Roles y Usuarios Principales
-1. **Driver (Conductor):** Realiza check-in/check-out de pasajeros en transfers, consulta horarios y coordina traslados.
+- **Capa de Presentación (UI):** Jetpack Compose + Material Design 3 (`LoginScreen`, `ServiciosScreen`, `DetalleScreen`, `DisponibilidadScreen`, `PerfilScreen`), con soporte bilingüe (`ES` / `EN`) y diseño adaptable al teclado.
+- **Capa de Estado y Lógica (ViewModels):** `ServiciosViewModel` y `DetalleViewModel` gestionan los estados reactivos (`StateFlow`), validación de geocerca GPS mediante fórmula de Haversine (radio de 150 m) y ventana de anticipación operativa (15 minutos).
+- **Capa de Persistencia Local (Offline-First):**
+  - **Room Database:** Almacena registros de Check-in/Check-out, confirmaciones e incidencias con `idempotencyKey` único para evitar duplicados.
+  - **`OfflineLinceCache`:** Guarda en caché local el catálogo y el detalle de servicios para operar sin conexión.
+  - **WorkManager (`SyncOperacionesWorker`):** Sincroniza automáticamente en segundo plano las operaciones pendientes cuando el dispositivo recupera conexión a Internet.
+- **Capa de Red (Retrofit 2 + OkHttp):** Comunicación híbrida con el microservicio backend propio en Spring Boot (Render), la API operativa de Southbound Travel y la API meteorológica de OpenWeatherMap.
+
+---
+
+## Documentación de APIs y Endpoints
+
+### Enlaces Directos
+- **URL Swagger UI (Backend Producción):** [Abrir Swagger UI — Proyecto Lince Backend](https://proyectolince-backend.onrender.com/swagger-ui/index.html#/)
+- **API Operativa Southbound Travel:** `https://ws.southbound.travel/` *(VirtualHost local/staging sobre servidor WAMP — módulo `Lince` / `API`, respaldado con caché offline-first en la app)*
+- **APK Release Firmada:** Disponible en la sección [**Releases**](../../releases) de este repositorio.
+
+### Principales Endpoints Integrados
+- **Backend Propio (`https://proyectolince-backend.onrender.com`):**
+  - `POST /api/auth/login` — Autenticación de usuarios y asignación de rol (`Driver`, `Guía`, `Coordinador`).
+  - `GET /api/servicios` — Consulta de servicios asignados y estado operativo sincronizado.
+  - `POST /api/servicios/{id}/confirmar` — Confirmación o rechazo con motivo de reasignación.
+  - `POST /api/operaciones/checkin` — Registro idempotente de Check-in con coordenadas GPS, precisión y validación de geocerca.
+  - `POST /api/operaciones/checkout` — Registro idempotente de Check-out y cierre de servicio.
+  - `POST /api/disponibilidad/bloqueos` — Gestión de bloqueos de agenda con validación de anticipación mínima.
+- **API Southbound Travel (`https://ws.southbound.travel/`):**
+  - Consumo del catálogo de transfers, servicios guiados y excursiones (`TRANSFER`, `GUIDED_SERVICE`, `EXCURSION`), itinerarios de origen/destino y pasajeros (`pax`).
+- **API Meteorológica (`OpenWeatherMap`):**
+  - `GET /data/2.5/weather` — Consulta de condiciones climáticas en tiempo real según coordenadas de ruta.
+
+---
+
+## Roles y Funcionalidades Clave
+
+1. **Driver (Conductor):** Realiza check-in/check-out de pasajeros en transfers, consulta horarios, navega hacia el punto de pickup y coordina traslados.
 2. **Guía de Turismo:** Accede al detalle de excursiones, listas de pasajeros (`pax`), rutas e información meteorológica.
-3. **Coordinador:** Supervisa asignaciones, confirma o reasigna servicios rechazados y gestiona la flota.
+3. **Coordinador:** Supervisa asignaciones, confirma o reasigna servicios rechazados y gestiona la disponibilidad de flota.
 
-### Funcionalidades Clave Implementadas
-- **Autenticación con Roles e Interfaz Anti-Teclado:** Pantalla de Login adaptable (`verticalScroll`, `imePadding` y `windowSoftInputMode="adjustResize"`) con selección rápida de rol (`Driver`, `Guía`, `Coordinador`) y selector de idioma (`ES` / `EN`).
-- **Agenda y Lista de Servicios Dinámica:** Tarjetas con estados operativos (`PENDIENTE`, `CONFIRMADO`, `RECHAZADO`), filtros avanzados por fecha (**Hoy**, **Calendario**, fechas rápidas), tipo de servicio (`TRANSFER`, `GUIDED_SERVICE`, `EXCURSION`) y estado operativo.
-- **Integración API REST (Red):** 
-  - Consumo del catálogo y detalle de servicios en tiempo real desde la **API de Southbound (`ws.southbound.travel`)**.
-  - Registro de confirmaciones, geocercas y eventos de `Check-in` / `Check-out` con **idempotencia** en el microservicio propio (**Spring Boot / Render**).
-  - Predicción meteorológica en tiempo real mediante **OpenWeatherMap** y **Retrofit 2**.
-- **Arquitectura Offline-First (Room + Caché Local + WorkManager):** Respaldo local de catálogos y detalles (`OfflineLinceCache`), persistencia de registros operacionales en **Room** y sincronización automática en segundo plano mediante **WorkManager** al recuperar conectividad.
-- **Validación GPS y Geocercas (150 m):** Verificación de proximidad mediante fórmula de Haversine, precisión GPS y ventana de anticipación antes del pickup.
-- **Integración con Recursos Nativos del Dispositivo:** 
-  - **Llamadas telefónicas:** Activación directa del marcador telefónico (`Intent.ACTION_DIAL`) para contactar al titular del servicio o Despacho central.
-  - **Navegación GPS Externa:** Apertura directa de Waze / Google Maps (`Intent.ACTION_VIEW` con esquema `geo:`) hacia la ubicación de origen/destino.
+### Recursos Nativos Integrados
+- **GPS / Ubicación en tiempo real:** Cálculo de distancia al punto de pickup para validación de geocerca (150 m).
+- **Llamadas telefónicas:** Activación directa del marcador telefónico (`Intent.ACTION_DIAL`) para contactar al pasajero o Despacho central.
+- **Navegación GPS Externa:** Apertura directa de Google Maps / Waze (`Intent.ACTION_VIEW` con esquema `geo:`) hacia origen o destino.
 
 ---
 
@@ -51,34 +75,36 @@ Las empresas de turismo y transporte de pasajeros enfrentan retrasos, mala comun
 - **Nombre de la App:** Southbound Field
 - **Logotipo:** Configurado desde `R.drawable.logo_lince` y como icono nativo de la aplicación.
 - **Paleta de Colores (Material Design 3):**
-  - **Azul Principal (`AzulPrincipal`):** Color distintivo en TopAppBar, botones primarios y tabs seleccionados.
-  - **Verde Confirmado (`VerdeConfirmado` / `VerdeFondoBadge`):** Indicadores de estados confirmados, llamadas y check-in.
-  - **Gris & Fondo (`FondoPantalla` / `TextoGris` / `TextoOscuro`):** Contraste de alta legibilidad para interfaces en terreno bajo la luz del sol.
+  - **Azul Principal (`AzulPrincipal`):** TopAppBar, botones primarios y pestañas activas.
+  - **Verde Confirmado (`VerdeConfirmado` / `VerdeFondoBadge`):** Estados confirmados, llamadas y check-in exitoso.
+  - **Gris & Fondo (`FondoPantalla` / `TextoGris` / `TextoOscuro`):** Contraste de alta legibilidad para uso en terreno bajo luz solar.
 
 ---
 
 ## Pantallas Principales
 
-1. **Login Screen (`LoginScreen.kt`):**
-   - Selector de rol en la cabecera y conmutador de idioma (`ES` | `EN`).
-   - Campos de correo y contraseña con alternancia de visibilidad.
-   - Precarga en segundo plano del servidor backend y ajuste inteligente ante el despliegue del teclado virtual.
-2. **Servicios (`ServiciosScreen.kt`):**
-   - Agenda filtrable por fecha, tipo de servicio y estado, con indicador visual en modo sin conexión.
-   - Confirmación/Rechazo con diálogo emergente (`AlertDialog`) para ingresar el motivo de reasignación.
-   - Botones de acción dinámicos según el rol (*Driver*, *Guía* o *Coordinador*).
-3. **Detalle del Servicio (`DetalleScreen.kt`):**
-   - Mapeo dinámico del servicio seleccionado desde la API de Southbound.
-   - Visualizador de clima integrado consumido desde la API REST.
-   - Validación de geocerca GPS (150 m), timeline gráfico de Origen → Destino y registro persistido de Check-in / Check-out en Room + WorkManager.
-   - Botones directos para llamar al pasajero/despacho o abrir navegación GPS externa.
-4. **Disponibilidad (`DisponibilidadScreen.kt`):**
-   - Gestión de bloqueos de agenda con validación de anticipación mínima y control de conflictos con servicios asignados.
+1. **Login Screen (`LoginScreen.kt`):** Selector de rol, conmutador de idioma (`ES` | `EN`), precarga en segundo plano del backend en Render y ajuste dinámico ante el teclado virtual.
+2. **Servicios (`ServiciosScreen.kt`):** Agenda filtrable por fecha (**Hoy**, **Calendario**), tipo de servicio y estado, con banner indicador de modo sin conexión.
+3. **Detalle del Servicio (`DetalleScreen.kt`):** Datos del servicio desde Southbound, clima en ruta, validación de geocerca (150 m), timeline Origen → Destino, Check-in / Check-out persistido en Room + WorkManager, llamadas y navegación GPS.
+4. **Disponibilidad (`DisponibilidadScreen.kt`):** Bloqueo de fechas con validación de anticipación y detección de conflictos con servicios asignados.
+
+---
+
+## Pasos de Instalación de la APK (Versión Release Firmada)
+
+1. **Descargar la APK:**
+   - Ingresa a la sección [**Releases**](../../releases) de este repositorio en GitHub y descarga el archivo **`app-release.apk`** .
+2. **Preparar el dispositivo Android (Android 8.0 / API 26 o superior):**
+   - Si tienes instalada una versión previa de desarrollo (*debug*), desinstálala antes para evitar conflictos de firma digital.
+   - En el teléfono, ve a **Ajustes → Seguridad / Privacidad → Instalar aplicaciones desconocidas** y habilita el permiso para tu navegador o gestor de archivos.
+3. **Instalar y verificar:**
+   - Abre el archivo `app-release.apk` descargado y presiona **Instalar**.
+   - Una vez instalada, puedes verificar su versión (`versionName` / `versionCode`) desde **Ajustes → Aplicaciones → Southbound Field** o en la pantalla de **Perfil** dentro de la app.
 
 ---
 
 ## Ejecución de Tests
 
-### 1. Pruebas Unitarias (JVM)
+### Pruebas Unitarias (JVM)
 ```bash
 .\gradlew.bat testDebugUnitTest --tests "com.example.proyectolince.ExampleUnitTest"
