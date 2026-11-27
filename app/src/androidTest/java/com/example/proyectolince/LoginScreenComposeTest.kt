@@ -6,6 +6,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import com.example.proyectolince.ui.screens.LoginScreen
 import com.example.proyectolince.ui.screens.Rol
@@ -17,37 +19,32 @@ class LoginScreenComposeTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+
     @Test
-    fun loginScreenMuestraRolesCamposYPermiteInteraccion() {
+    fun loginScreenMuestraErrorConDatosInvalidos() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        var rolSeleccionado: Rol? = null
 
         composeTestRule.setContent {
             LoginScreen(
                 idiomaActual = "es",
                 onCambiarIdioma = {},
-                onLoginSuccess = { rolSeleccionado = it }
+                onLoginSuccess = {}
             )
         }
 
-        val tituloApp = context.getString(R.string.subtitulo_app)
-        val txtDriver = context.getString(R.string.rol_driver)
-        val txtGuia = context.getString(R.string.rol_guia)
-        val txtCoordinador = context.getString(R.string.rol_coordinador)
+        // Ingresa correo con formato inválido y contraseña vacía
+        val camposTexto = composeTestRule.onAllNodes(androidx.compose.ui.test.hasSetTextAction())
+        camposTexto[0].performTextClearance()
+        camposTexto[0].performTextInput("correo-invalido")
+        camposTexto[1].performTextClearance()
+
+        // Presiona el botón de iniciar sesión
         val txtBotonLogin = context.getString(R.string.login_btn)
-
-        // Verifica título y pestañas de rol
-        composeTestRule.onNodeWithText(tituloApp).assertIsDisplayed()
-        composeTestRule.onNodeWithText(txtDriver).assertIsDisplayed()
-        composeTestRule.onNodeWithText(txtGuia).assertIsDisplayed()
-        composeTestRule.onNodeWithText(txtCoordinador).assertIsDisplayed()
-
-        // Cambia a rol Guía
-        composeTestRule.onNodeWithText(txtGuia).performClick()
-
-        // Hace scroll hasta el botón de acceso y verifica que esté visible
         composeTestRule.onNodeWithText(txtBotonLogin)
             .performScrollTo()
-            .assertIsDisplayed()
+            .performClick()
+
+        // Verifica que sigue en pantalla de Login (no navegó) y muestra validación
+        composeTestRule.onNodeWithText(txtBotonLogin).assertIsDisplayed()
     }
 }

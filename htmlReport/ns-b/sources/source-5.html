@@ -1,0 +1,266 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LoginViewModel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.ui.viewmodel</a>
+</div>
+
+<h1>Coverage Summary for Class: LoginViewModel (com.example.proyectolince.ui.viewmodel)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LoginViewModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (15/15)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LoginViewModel$iniciarSesion$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60%
+  </span>
+  <span class="absValue">
+    (6/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91,4%
+  </span>
+  <span class="absValue">
+    (32/35)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    64,3%
+  </span>
+  <span class="absValue">
+    (9/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94%
+  </span>
+  <span class="absValue">
+    (47/50)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.ui.viewmodel
+&nbsp;
+&nbsp;import android.app.Application
+&nbsp;import androidx.lifecycle.AndroidViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import com.example.proyectolince.data.SessionManager
+&nbsp;import com.example.proyectolince.data.remote.BackendClient
+&nbsp;import com.example.proyectolince.data.remote.dto.LoginRequest
+&nbsp;import com.example.proyectolince.ui.screens.Rol
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.asStateFlow
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;
+<b class="fc">&nbsp;class LoginViewModel(application: Application) : AndroidViewModel(application) {</b>
+&nbsp;
+<b class="fc">&nbsp;    private val sessionManager = SessionManager(application)</b>
+<b class="fc">&nbsp;    private val backendApi = BackendClient.create(application)</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _uiState = MutableStateFlow(LoginUiState())</b>
+<b class="fc">&nbsp;    val uiState: StateFlow&lt;LoginUiState&gt; = _uiState.asStateFlow()</b>
+&nbsp;
+&nbsp;    fun onRolSelected(rol: Rol) {
+<b class="fc">&nbsp;        _uiState.update { it.copy(rolSeleccionado = rol, mensajeError = null) }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onCorreoChanged(correo: String) {
+<b class="fc">&nbsp;        _uiState.update { it.copy(correo = correo, mensajeError = null) }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onClaveChanged(clave: String) {
+<b class="fc">&nbsp;        _uiState.update { it.copy(clave = clave, mensajeError = null) }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun togglePasswordVisibility() {
+<b class="fc">&nbsp;        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun resetSuccessState() {
+<b class="fc">&nbsp;        _uiState.update { it.copy(isSuccess = false) }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun iniciarSesion() {
+<b class="fc">&nbsp;        val correoInput = _uiState.value.correo.trim()</b>
+<b class="fc">&nbsp;        val claveInput = _uiState.value.clave.trim()</b>
+&nbsp;
+<b class="pc">&nbsp;        if (correoInput.isBlank() || claveInput.isBlank()) {</b>
+<b class="fc">&nbsp;            _uiState.update { it.copy(mensajeError = &quot;Ingresa tu correo y contraseña&quot;) }</b>
+&nbsp;            return
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            _uiState.update { it.copy(isLoading = true, mensajeError = null) }</b>
+&nbsp;            try {
+<b class="fc">&nbsp;                val response = backendApi.login(LoginRequest(correoInput, claveInput))</b>
+<b class="pc">&nbsp;                if (response.isSuccessful &amp;&amp; response.body() != null) {</b>
+<b class="fc">&nbsp;                    val data = response.body()!!</b>
+&nbsp;
+<b class="pc">&nbsp;                    val rolBackend = when (data.rol.uppercase()) {</b>
+<b class="fc">&nbsp;                        &quot;DRIVER&quot; -&gt; Rol.DRIVER</b>
+<b class="nc">&nbsp;                        &quot;GUIDE&quot; -&gt; Rol.GUIA</b>
+<b class="nc">&nbsp;                        &quot;ADMIN&quot;, &quot;COORDINATOR&quot; -&gt; Rol.COORDINADOR</b>
+<b class="nc">&nbsp;                        else -&gt; _uiState.value.rolSeleccionado</b>
+&nbsp;                    }
+&nbsp;
+<b class="fc">&nbsp;                    if (rolBackend != _uiState.value.rolSeleccionado) {</b>
+<b class="fc">&nbsp;                        _uiState.update {</b>
+<b class="fc">&nbsp;                            it.copy(</b>
+<b class="fc">&nbsp;                                isLoading = false,</b>
+<b class="fc">&nbsp;                                mensajeError = &quot;Tu cuenta pertenece al rol ${rolBackend.etiqueta}&quot;</b>
+<b class="fc">&nbsp;                            )</b>
+&nbsp;                        }
+&nbsp;                        return@launch
+&nbsp;                    }
+&nbsp;
+<b class="fc">&nbsp;                    sessionManager.saveSession(</b>
+<b class="fc">&nbsp;                        token = data.token,</b>
+<b class="fc">&nbsp;                        email = data.email,</b>
+<b class="fc">&nbsp;                        nombre = data.nombre,</b>
+<b class="fc">&nbsp;                        rol = data.rol,</b>
+<b class="fc">&nbsp;                        linceRecursoId = data.linceRecursoId,</b>
+<b class="fc">&nbsp;                        oficinaCodigo = data.oficinaCodigo</b>
+&nbsp;                    )
+&nbsp;
+<b class="fc">&nbsp;                    _uiState.update {</b>
+<b class="fc">&nbsp;                        it.copy(</b>
+<b class="fc">&nbsp;                            isLoading = false,</b>
+<b class="fc">&nbsp;                            isSuccess = true,</b>
+<b class="fc">&nbsp;                            rolSeleccionado = rolBackend</b>
+<b class="fc">&nbsp;                        )</b>
+&nbsp;                    }
+&nbsp;                } else {
+<b class="fc">&nbsp;                    _uiState.update {</b>
+<b class="fc">&nbsp;                        it.copy(isLoading = false, mensajeError = &quot;Correo o contraseña incorrectos&quot;)</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } catch (e: Exception) {
+<b class="fc">&nbsp;                _uiState.update {</b>
+<b class="fc">&nbsp;                    it.copy(</b>
+<b class="fc">&nbsp;                        isLoading = false,</b>
+<b class="fc">&nbsp;                        mensajeError = &quot;Error de conexión: ${e.localizedMessage}&quot;</b>
+<b class="fc">&nbsp;                    )</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

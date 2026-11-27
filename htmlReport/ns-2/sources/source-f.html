@@ -1,0 +1,94 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RegistroDao</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data</a>
+</div>
+
+<h1>Coverage Summary for Class: RegistroDao (com.example.proyectolince.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">RegistroDao</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data
+&nbsp;
+&nbsp;import androidx.room.Dao
+&nbsp;import androidx.room.Insert
+&nbsp;import androidx.room.OnConflictStrategy
+&nbsp;import androidx.room.Query
+&nbsp;import kotlinx.coroutines.flow.Flow
+&nbsp;
+&nbsp;@Dao
+&nbsp;interface RegistroDao {
+&nbsp;
+&nbsp;    @Insert(onConflict = OnConflictStrategy.REPLACE)
+&nbsp;    suspend fun insertarRegistro(registro: RegistroOperacional)
+&nbsp;
+&nbsp;    @Query(&quot;SELECT * FROM registros_operacionales ORDER BY fechaRegistro DESC&quot;)
+&nbsp;    fun obtenerTodosLosRegistros(): Flow&lt;List&lt;RegistroOperacional&gt;&gt;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT * FROM registros_operacionales WHERE codigoServicio = :codigo LIMIT 1&quot;)
+&nbsp;    suspend fun obtenerRegistroPorServicio(codigo: String): RegistroOperacional?
+&nbsp;
+&nbsp;    @Query(&quot;SELECT * FROM registros_operacionales WHERE sincronizado = 0&quot;)
+&nbsp;    suspend fun obtenerPendientesSincronizacion(): List&lt;RegistroOperacional&gt;
+&nbsp;
+&nbsp;    @Query(&quot;UPDATE registros_operacionales SET sincronizado = 1 WHERE id = :id&quot;)
+&nbsp;    suspend fun marcarComoSincronizado(id: Int)
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

@@ -15,6 +15,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,6 +30,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.example.proyectolince.data.network.ServicioLinceDto
+import org.junit.Assert.assertNotNull
 import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -178,4 +181,97 @@ class DetalleViewModelTest {
 
         assertEquals("HTTP 401 No autorizado", viewModel.errorServicio.value)
     }
+
+    @Test
+    fun `cargarServicioYRegistro carga servicio y calcula geocerca fallback`() = runTest(kotlinx.coroutines.test.UnconfinedTestDispatcher()) {
+        val servicioDto = mockk<ServicioLinceDto>(relaxed = true) {
+            every { pickup } returns "Hotel W Santiago"
+        }
+        coEvery { repository.obtenerPorCodigo("101") } returns null
+        coEvery { linceRepository.obtenerDetalleServicio("101") } returns ResultadoApi.Exito(servicioDto)
+        coEvery { sessionManager.getBearerToken() } returns null
+
+        viewModel.cargarServicioYRegistro("101")
+        kotlinx.coroutines.delay(50)
+
+        assertNotNull(viewModel.servicio.value)
+        assertEquals("Hotel W Santiago", viewModel.estadoGps.value.geocercaDestino?.nombreLugar)
+
+        viewModel.actualizarPosicionGps(GpsSnapshot(-33.4161, -70.6022, 10f))
+        assertTrue(viewModel.estadoGps.value.dentroDeRadio)
+    }
+
+    @Test
+    fun `registrarCheckInConGps y registrarCheckOutConGps guardan en Room y encolan offline`() = runTest(kotlinx.coroutines.test.UnconfinedTestDispatcher()) {
+        val context = mockk<Context>(relaxed = true)
+        mockkObject(SyncOperacionesWorker)
+        every { SyncOperacionesWorker.encolarSincronizacion(any()) } returns Unit
+        coEvery { repository.obtenerPorCodigo("101") } returns null
+        coEvery { repository.guardarRegistro(any()) } returns Unit
+        coEvery { sessionManager.getBearerToken() } returns null
+
+        var msgIn = ""
+        viewModel.registrarCheckInConGps(
+            context = context,
+            codigoServicio = "101",
+            nombreLugar = "Hotel W Santiago",
+            horaPickupProgramada = "23:59",
+            gps = GpsSnapshot(-33.4161, -70.6022, 12f)
+        ) { msgIn = it }
+        kotlinx.coroutines.delay(50)
+        assertTrue(msgIn.isNotEmpty())
+
+        var msgOut = ""
+        viewModel.registrarCheckOutConGps(
+            context = context,
+            codigoServicio = "101",
+            nombreLugarDestino = "Aeropuerto",
+            observaciones = "Sin novedades",
+            gps = GpsSnapshot(-33.3930, -70.7858, 10f)
+        ) { msgOut = it }
+        kotlinx.coroutines.delay(50)
+        assertTrue(msgOut.isNotEmpty())
+        unmockkObject(SyncOperacionesWorker)
+    }
+
+    @Test
+    fun `checkIn y checkOut sincronizan con backend cuando hay token y red`() = runTest(kotlinx.coroutines.test.UnconfinedTestDispatcher()) {
+        val context = mockk<Context>(relaxed = true)
+        mockkObject(com.example.proyectolince.data.network.BackendRetrofitInstance)
+        val api = mockk<com.example.proyectolince.data.network.BackendApiService>(relaxed = true)
+        every { com.example.proyectolince.data.network.BackendRetrofitInstance.api } returns api
+        coEvery { sessionManager.getBearerToken() } returns "Bearer token-123"
+        coEvery { repository.obtenerPorCodigo("101") } returns null
+        coEvery { repository.guardarRegistro(any()) } returns Unit
+        coEvery { api.getGeocercas(any()) } returns retrofit2.Response.success(emptyList())
+        coEvery { api.registrarCheckInOut(any(), any()) } returns retrofit2.Response.success(
+            mockk(relaxed = true) {
+                every { observacionValidacion } returns "OK Servidor"
+                every { distanciaGeocercaMetros } returns 12.0
+            }
+        )
+
+        var msg = ""
+        viewModel.registrarCheckInConGps(
+            context = context,
+            codigoServicio = "101",
+            nombreLugar = "Hotel W Santiago",
+            horaPickupProgramada = "23:59",
+            gps = GpsSnapshot(-33.4161, -70.6022, 10f)
+        ) { msg = it }
+        kotlinx.coroutines.delay(50)
+        assertEquals("OK Servidor", msg)
+
+        viewModel.registrarCheckOutConGps(
+            context = context,
+            codigoServicio = "101",
+            nombreLugarDestino = "Aeropuerto",
+            observaciones = "OK",
+            gps = GpsSnapshot(-33.3930, -70.7858, 10f)
+        ) { msg = it }
+        kotlinx.coroutines.delay(50)
+        assertEquals("Check-out sincronizado con servidor", msg)
+        io.mockk.unmockkObject(com.example.proyectolince.data.network.BackendRetrofitInstance)
+    }
+
 }

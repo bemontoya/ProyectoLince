@@ -1,0 +1,785 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EstiloDia</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.ui.screens</a>
+</div>
+
+<h1>Coverage Summary for Class: EstiloDia (com.example.proyectolince.ui.screens)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EstiloDia</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.ui.screens
+&nbsp;
+&nbsp;import androidx.annotation.StringRes
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.border
+&nbsp;import androidx.compose.foundation.clickable
+&nbsp;import androidx.compose.foundation.layout.*
+&nbsp;import androidx.compose.foundation.lazy.LazyColumn
+&nbsp;import androidx.compose.foundation.lazy.items
+&nbsp;import androidx.compose.foundation.shape.CircleShape
+&nbsp;import androidx.compose.foundation.shape.RoundedCornerShape
+&nbsp;import androidx.compose.material.icons.Icons
+&nbsp;import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+&nbsp;import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+&nbsp;import androidx.compose.material.icons.filled.*
+&nbsp;import androidx.compose.material3.*
+&nbsp;import androidx.compose.runtime.*
+&nbsp;import androidx.compose.runtime.saveable.rememberSaveable
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import androidx.compose.ui.graphics.Color
+&nbsp;import androidx.compose.ui.platform.LocalConfiguration
+&nbsp;import androidx.compose.ui.res.stringResource
+&nbsp;import androidx.compose.ui.text.font.FontWeight
+&nbsp;import androidx.compose.ui.text.style.TextAlign
+&nbsp;import androidx.compose.ui.tooling.preview.Preview
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import androidx.compose.ui.unit.sp
+&nbsp;import com.example.proyectolince.R
+&nbsp;import com.example.proyectolince.ui.theme.*
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import java.time.LocalDate
+&nbsp;import java.time.YearMonth
+&nbsp;import java.time.format.DateTimeFormatter
+&nbsp;import java.time.format.TextStyle
+&nbsp;import java.util.Locale
+&nbsp;
+&nbsp;private enum class TipoDia { SERVICIO_PENDIENTE, SERVICIO_CONFIRMADO, BLOQUEADO }
+&nbsp;
+&nbsp;private data class Bloqueo(val fecha: LocalDate, val motivo: String)
+&nbsp;
+<b class="nc">&nbsp;private data class EstiloDia(</b>
+<b class="nc">&nbsp;    val relleno: Color,</b>
+<b class="nc">&nbsp;    val texto: Color,</b>
+<b class="nc">&nbsp;    val indicador: Color,</b>
+<b class="nc">&nbsp;    @StringRes val etiquetaRes: Int</b>
+&nbsp;)
+&nbsp;
+&nbsp;private fun estiloDe(tipo: TipoDia): EstiloDia = when (tipo) {
+&nbsp;    TipoDia.SERVICIO_PENDIENTE -&gt; EstiloDia(
+&nbsp;        NaranjaFondoBadge, NaranjaPendiente, NaranjaPendiente,
+&nbsp;        R.string.estado_pendiente
+&nbsp;    )
+&nbsp;    TipoDia.SERVICIO_CONFIRMADO -&gt; EstiloDia(
+&nbsp;        VerdeFondoBadge, VerdeConfirmado, VerdeConfirmado,
+&nbsp;        R.string.estado_confirmado
+&nbsp;    )
+&nbsp;    TipoDia.BLOQUEADO -&gt; EstiloDia(
+&nbsp;        RojoRechazar, RojoTextoRechazar, RojoTextoRechazar,
+&nbsp;        R.string.estado_bloqueado
+&nbsp;    )
+&nbsp;}
+&nbsp;
+&nbsp;private fun diasConServicioDemo(): Map&lt;LocalDate, TipoDia&gt; {
+&nbsp;    val hoy = LocalDate.now()
+&nbsp;    return mapOf(
+&nbsp;        hoy.plusDays(1) to TipoDia.SERVICIO_PENDIENTE,
+&nbsp;        hoy.plusDays(3) to TipoDia.SERVICIO_CONFIRMADO,
+&nbsp;        hoy.plusDays(4) to TipoDia.SERVICIO_CONFIRMADO
+&nbsp;    )
+&nbsp;}
+&nbsp;
+&nbsp;private fun fechaLarga(fecha: LocalDate, locale: Locale): String {
+&nbsp;    val dia = fecha.dayOfWeek.getDisplayName(TextStyle.FULL, locale).replaceFirstChar {
+&nbsp;        it.uppercase()
+&nbsp;    }
+&nbsp;    val mes = fecha.month.getDisplayName(TextStyle.FULL, locale)
+&nbsp;    return if (locale.language == &quot;en&quot;) {
+&nbsp;        &quot;$dia, $mes ${fecha.dayOfMonth}&quot;
+&nbsp;    } else {
+&nbsp;        &quot;$dia ${fecha.dayOfMonth} de $mes&quot;
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@OptIn(ExperimentalMaterial3Api::class)
+&nbsp;@Composable
+&nbsp;fun DisponibilidadScreen(
+&nbsp;    inicialUsuario: String = &quot;D&quot;,
+&nbsp;    onNavigateToServicios: () -&gt; Unit = {},
+&nbsp;    onNavigateToDetalle: () -&gt; Unit = {},
+&nbsp;    onNavigateToNotificaciones: () -&gt; Unit = {},
+&nbsp;    onNavigateToPerfil: () -&gt; Unit = {}
+&nbsp;) {
+&nbsp;    val hoy = remember { LocalDate.now() }
+&nbsp;    val fechaMinimaBloqueo = remember(hoy) { hoy.plusDays(7) }
+&nbsp;    val localeActual = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
+&nbsp;
+&nbsp;    var isDisponible by rememberSaveable { mutableStateOf(true) }
+&nbsp;    var mes by rememberSaveable { mutableStateOf(YearMonth.now()) }
+&nbsp;    var fechaSeleccionada by rememberSaveable { mutableStateOf&lt;LocalDate?&gt;(hoy) }
+&nbsp;    var mostrarDialogo by remember { mutableStateOf(false) }
+&nbsp;
+&nbsp;    val serviciosDemo = remember { diasConServicioDemo() }
+&nbsp;    val bloqueos = remember {
+&nbsp;        mutableStateListOf(Bloqueo(hoy.plusDays(10), &quot;Descanso programado / Scheduled rest&quot;))
+&nbsp;    }
+&nbsp;
+&nbsp;    val tiposPorFecha: Map&lt;LocalDate, TipoDia&gt; = buildMap {
+&nbsp;        putAll(serviciosDemo)
+&nbsp;        bloqueos.forEach { put(it.fecha, TipoDia.BLOQUEADO) }
+&nbsp;    }
+&nbsp;
+&nbsp;    val snackbarHostState = remember { SnackbarHostState() }
+&nbsp;    val scope = rememberCoroutineScope()
+&nbsp;
+&nbsp;    val msgDesbloqueado = stringResource(R.string.msg_dia_desbloqueado)
+&nbsp;    val msgBloqueado = stringResource(R.string.msg_dia_bloqueado)
+&nbsp;    val msgServicioAsignado = stringResource(R.string.error_servicio_asignado)
+&nbsp;    val fechaMinimaStr = fechaMinimaBloqueo.format(DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy&quot;))
+&nbsp;    val msg7Dias = stringResource(R.string.error_7_dias, fechaMinimaStr)
+&nbsp;
+&nbsp;    fun alternarBloqueo() {
+&nbsp;        val fecha = fechaSeleccionada ?: return
+&nbsp;        val existente = bloqueos.find { it.fecha == fecha }
+&nbsp;        when {
+&nbsp;            existente != null -&gt; {
+&nbsp;                bloqueos.remove(existente)
+&nbsp;                scope.launch { snackbarHostState.showSnackbar(msgDesbloqueado) }
+&nbsp;            }
+&nbsp;            serviciosDemo.containsKey(fecha) -&gt; {
+&nbsp;                scope.launch { snackbarHostState.showSnackbar(msgServicioAsignado) }
+&nbsp;            }
+&nbsp;            fecha.isBefore(fechaMinimaBloqueo) -&gt; {
+&nbsp;                scope.launch { snackbarHostState.showSnackbar(msg7Dias) }
+&nbsp;            }
+&nbsp;            else -&gt; mostrarDialogo = true
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    val yaBloqueado = fechaSeleccionada != null &amp;&amp; bloqueos.any { it.fecha == fechaSeleccionada }
+&nbsp;    val bloqueosOrdenados = bloqueos.sortedBy { it.fecha }
+&nbsp;
+&nbsp;    Scaffold(
+&nbsp;        containerColor = FondoPantalla,
+&nbsp;        snackbarHost = { SnackbarHost(snackbarHostState) },
+&nbsp;        topBar = {
+&nbsp;            TopAppBar(
+&nbsp;                title = {
+&nbsp;                    Column {
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.subtitulo_app),
+&nbsp;                            fontSize = 11.sp,
+&nbsp;                            color = TextoGris,
+&nbsp;                            fontWeight = FontWeight.Bold
+&nbsp;                        )
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.titulo_disponibilidad),
+&nbsp;                            fontSize = 20.sp,
+&nbsp;                            color = TextoOscuro,
+&nbsp;                            fontWeight = FontWeight.Bold
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                },
+&nbsp;                actions = {
+&nbsp;                    IconButton(onClick = onNavigateToNotificaciones) {
+&nbsp;                        Icon(Icons.Default.Notifications, contentDescription = null, tint = TextoOscuro)
+&nbsp;                    }
+&nbsp;                    Box(
+&nbsp;                        modifier = Modifier
+&nbsp;                            .padding(end = 16.dp)
+&nbsp;                            .size(32.dp)
+&nbsp;                            .clip(CircleShape)
+&nbsp;                            .background(AzulPrincipal)
+&nbsp;                            .clickable { onNavigateToPerfil() },
+&nbsp;                        contentAlignment = Alignment.Center
+&nbsp;                    ) {
+&nbsp;                        Text(inicialUsuario, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+&nbsp;                    }
+&nbsp;                },
+&nbsp;                colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoPantalla)
+&nbsp;            )
+&nbsp;        },
+&nbsp;        bottomBar = {
+&nbsp;            BarraNavegacion(
+&nbsp;                seleccionado = Destino.DISPONIBILIDAD,
+&nbsp;                onNavegar = { destino -&gt;
+&nbsp;                    when (destino) {
+&nbsp;                        Destino.SERVICIOS -&gt; onNavigateToServicios()
+&nbsp;                        Destino.DISPONIBILIDAD -&gt; Unit
+&nbsp;                        Destino.PERFIL -&gt; onNavigateToPerfil()
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            )
+&nbsp;        }
+&nbsp;    ) { paddingValues -&gt;
+&nbsp;        LazyColumn(
+&nbsp;            modifier = Modifier
+&nbsp;                .fillMaxSize()
+&nbsp;                .padding(paddingValues)
+&nbsp;                .padding(horizontal = 16.dp),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(16.dp)
+&nbsp;        ) {
+&nbsp;            item {
+&nbsp;                Column(modifier = Modifier.padding(top = 8.dp)) {
+&nbsp;                    Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;                        Icon(Icons.Default.DateRange, contentDescription = null, tint = AzulPrincipal, modifier = Modifier.size(16.dp))
+&nbsp;                        Spacer(modifier = Modifier.width(4.dp))
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.control_turnos),
+&nbsp;                            color = AzulPrincipal,
+&nbsp;                            fontWeight = FontWeight.Bold,
+&nbsp;                            fontSize = 12.sp
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                    Spacer(modifier = Modifier.height(8.dp))
+&nbsp;                    Text(
+&nbsp;                        text = stringResource(R.string.mi_disponibilidad),
+&nbsp;                        color = TextoOscuro,
+&nbsp;                        fontWeight = FontWeight.Bold,
+&nbsp;                        fontSize = 24.sp
+&nbsp;                    )
+&nbsp;                    Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                    Text(
+&nbsp;                        text = stringResource(R.string.subtitulo_disponibilidad),
+&nbsp;                        color = TextoGris,
+&nbsp;                        fontSize = 14.sp
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                Card(
+&nbsp;                    colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+&nbsp;                    shape = RoundedCornerShape(12.dp)
+&nbsp;                ) {
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+&nbsp;                        verticalAlignment = Alignment.CenterVertically,
+&nbsp;                        horizontalArrangement = Arrangement.SpaceBetween
+&nbsp;                    ) {
+&nbsp;                        Column(modifier = Modifier.weight(1f)) {
+&nbsp;                            Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;                                Box(
+&nbsp;                                    modifier = Modifier
+&nbsp;                                        .size(8.dp)
+&nbsp;                                        .clip(CircleShape)
+&nbsp;                                        .background(if (isDisponible) VerdeConfirmado else RojoTextoRechazar)
+&nbsp;                                )
+&nbsp;                                Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                                Text(
+&nbsp;                                    text = if (isDisponible) stringResource(R.string.disponible_nuevas)
+&nbsp;                                    else stringResource(R.string.no_disponible),
+&nbsp;                                    fontWeight = FontWeight.Bold,
+&nbsp;                                    fontSize = 14.sp,
+&nbsp;                                    color = TextoOscuro
+&nbsp;                                )
+&nbsp;                            }
+&nbsp;                            Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                            Text(
+&nbsp;                                text = if (isDisponible) stringResource(R.string.desc_disponible)
+&nbsp;                                else stringResource(R.string.desc_no_disponible),
+&nbsp;                                fontSize = 12.sp,
+&nbsp;                                color = TextoGris
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                        Switch(
+&nbsp;                            checked = isDisponible,
+&nbsp;                            onCheckedChange = { isDisponible = it },
+&nbsp;                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AzulPrincipal)
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            // Aviso regla operativa de 7 días
+&nbsp;            item {
+&nbsp;                Surface(
+&nbsp;                    color = AzulSecundario,
+&nbsp;                    shape = RoundedCornerShape(10.dp),
+&nbsp;                    modifier = Modifier.fillMaxWidth()
+&nbsp;                ) {
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.padding(12.dp),
+&nbsp;                        verticalAlignment = Alignment.CenterVertically
+&nbsp;                    ) {
+&nbsp;                        Icon(Icons.Default.Info, contentDescription = null, tint = AzulPrincipal, modifier = Modifier.size(18.dp))
+&nbsp;                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.regla_7_dias),
+&nbsp;                            fontSize = 12.sp,
+&nbsp;                            color = AzulPrincipal,
+&nbsp;                            fontWeight = FontWeight.Medium
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                CalendarCard(
+&nbsp;                    mes = mes,
+&nbsp;                    onMesChange = { mes = it },
+&nbsp;                    hoy = hoy,
+&nbsp;                    fechaSeleccionada = fechaSeleccionada,
+&nbsp;                    onSeleccionar = { fechaSeleccionada = it },
+&nbsp;                    tiposPorFecha = tiposPorFecha,
+&nbsp;                    locale = localeActual
+&nbsp;                )
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+&nbsp;                    val seleccionada = fechaSeleccionada
+&nbsp;                    if (seleccionada != null) {
+&nbsp;                        val tipo = tiposPorFecha[seleccionada]
+&nbsp;                        val estado = if (tipo != null) stringResource(estiloDe(tipo).etiquetaRes)
+&nbsp;                        else stringResource(R.string.estado_disponible)
+&nbsp;                        Text(
+&nbsp;                            text = &quot;${fechaLarga(seleccionada, localeActual)}\n$estado&quot;,
+&nbsp;                            fontSize = 13.sp,
+&nbsp;                            fontWeight = FontWeight.Bold,
+&nbsp;                            color = TextoOscuro
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;
+&nbsp;                    OutlinedButton(
+&nbsp;                        onClick = { alternarBloqueo() },
+&nbsp;                        enabled = seleccionada != null,
+&nbsp;                        modifier = Modifier.fillMaxWidth().height(48.dp),
+&nbsp;                        shape = RoundedCornerShape(8.dp),
+&nbsp;                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextoOscuro)
+&nbsp;                    ) {
+&nbsp;                        Icon(
+&nbsp;                            if (yaBloqueado) Icons.Default.LockOpen else Icons.Default.Block,
+&nbsp;                            contentDescription = null,
+&nbsp;                            tint = AzulPrincipal
+&nbsp;                        )
+&nbsp;                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                        Text(
+&nbsp;                            text = if (yaBloqueado) stringResource(R.string.desbloquear_dia_btn)
+&nbsp;                            else stringResource(R.string.bloquear_dia_btn),
+&nbsp;                            fontWeight = FontWeight.Bold
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                Row(
+&nbsp;                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+&nbsp;                    horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                    verticalAlignment = Alignment.CenterVertically
+&nbsp;                ) {
+&nbsp;                    Text(
+&nbsp;                        text = stringResource(R.string.proximos_bloqueos),
+&nbsp;                        fontWeight = FontWeight.Bold,
+&nbsp;                        color = TextoOscuro,
+&nbsp;                        fontSize = 16.sp
+&nbsp;                    )
+&nbsp;                    Text(
+&nbsp;                        text = &quot;${bloqueos.size}&quot;,
+&nbsp;                        color = TextoGris,
+&nbsp;                        fontSize = 12.sp
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            if (bloqueosOrdenados.isEmpty()) {
+&nbsp;                item {
+&nbsp;                    Text(stringResource(R.string.sin_dias_bloqueados), fontSize = 13.sp, color = TextoGris)
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            items(bloqueosOrdenados, key = { it.fecha.toEpochDay() }) { bloqueo -&gt;
+&nbsp;                BloqueoCard(
+&nbsp;                    bloqueo = bloqueo,
+&nbsp;                    locale = localeActual,
+&nbsp;                    onDesbloquear = {
+&nbsp;                        bloqueos.remove(bloqueo)
+&nbsp;                        scope.launch { snackbarHostState.showSnackbar(msgDesbloqueado) }
+&nbsp;                    }
+&nbsp;                )
+&nbsp;            }
+&nbsp;
+&nbsp;            item { Spacer(modifier = Modifier.height(16.dp)) }
+&nbsp;        }
+&nbsp;
+&nbsp;        if (mostrarDialogo) {
+&nbsp;            fechaSeleccionada?.let { fecha -&gt;
+&nbsp;                MotivoBloqueoDialog(
+&nbsp;                    fechaTexto = fechaLarga(fecha, localeActual),
+&nbsp;                    onConfirmar = { motivo -&gt;
+&nbsp;                        bloqueos.add(Bloqueo(fecha, motivo))
+&nbsp;                        mostrarDialogo = false
+&nbsp;                        scope.launch { snackbarHostState.showSnackbar(msgBloqueado) }
+&nbsp;                    },
+&nbsp;                    onCancelar = { mostrarDialogo = false }
+&nbsp;                )
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun BloqueoCard(bloqueo: Bloqueo, locale: Locale, onDesbloquear: () -&gt; Unit) {
+&nbsp;    Card(
+&nbsp;        colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+&nbsp;        shape = RoundedCornerShape(12.dp),
+&nbsp;        modifier = Modifier.fillMaxWidth()
+&nbsp;    ) {
+&nbsp;        Row(
+&nbsp;            modifier = Modifier.fillMaxWidth().padding(16.dp),
+&nbsp;            verticalAlignment = Alignment.CenterVertically
+&nbsp;        ) {
+&nbsp;            Box(
+&nbsp;                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(FondoPantalla),
+&nbsp;                contentAlignment = Alignment.Center
+&nbsp;            ) {
+&nbsp;                Icon(Icons.Default.Hotel, contentDescription = null, tint = TextoGris)
+&nbsp;            }
+&nbsp;            Spacer(modifier = Modifier.width(12.dp))
+&nbsp;            Column(modifier = Modifier.weight(1f)) {
+&nbsp;                Text(fechaLarga(bloqueo.fecha, locale), fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                Text(bloqueo.motivo, fontSize = 12.sp, color = TextoGris)
+&nbsp;                Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                Surface(color = AzulSecundario, shape = RoundedCornerShape(6.dp)) {
+&nbsp;                    Text(
+&nbsp;                        text = stringResource(R.string.dia_completo),
+&nbsp;                        color = AzulPrincipal,
+&nbsp;                        fontSize = 11.sp,
+&nbsp;                        fontWeight = FontWeight.Bold,
+&nbsp;                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;            IconButton(onClick = onDesbloquear) {
+&nbsp;                Icon(Icons.Default.Close, contentDescription = null, tint = TextoGris)
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun MotivoBloqueoDialog(
+&nbsp;    fechaTexto: String,
+&nbsp;    onConfirmar: (String) -&gt; Unit,
+&nbsp;    onCancelar: () -&gt; Unit
+&nbsp;) {
+&nbsp;    var motivo by remember { mutableStateOf(&quot;&quot;) }
+&nbsp;    var error by remember { mutableStateOf&lt;String?&gt;(null) }
+&nbsp;
+&nbsp;    AlertDialog(
+&nbsp;        onDismissRequest = onCancelar,
+&nbsp;        title = { Text(stringResource(R.string.bloquear_dia_btn)) },
+&nbsp;        text = {
+&nbsp;            Column {
+&nbsp;                Text(fechaTexto, fontSize = 13.sp, color = TextoGris)
+&nbsp;                Spacer(modifier = Modifier.height(12.dp))
+&nbsp;                OutlinedTextField(
+&nbsp;                    value = motivo,
+&nbsp;                    onValueChange = { motivo = it; error = null },
+&nbsp;                    label = { Text(&quot;Motivo / Reason&quot;) },
+&nbsp;                    isError = error != null,
+&nbsp;                    modifier = Modifier.fillMaxWidth()
+&nbsp;                )
+&nbsp;            }
+&nbsp;        },
+&nbsp;        confirmButton = {
+&nbsp;            TextButton(onClick = {
+&nbsp;                if (motivo.isNotBlank()) onConfirmar(motivo.trim())
+&nbsp;            }) { Text(&quot;OK&quot;) }
+&nbsp;        },
+&nbsp;        dismissButton = { TextButton(onClick = onCancelar) { Text(&quot;Cancel&quot;) } }
+&nbsp;    )
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun CalendarCard(
+&nbsp;    mes: YearMonth,
+&nbsp;    onMesChange: (YearMonth) -&gt; Unit,
+&nbsp;    hoy: LocalDate,
+&nbsp;    fechaSeleccionada: LocalDate?,
+&nbsp;    onSeleccionar: (LocalDate) -&gt; Unit,
+&nbsp;    tiposPorFecha: Map&lt;LocalDate, TipoDia&gt;,
+&nbsp;    locale: Locale
+&nbsp;) {
+&nbsp;    val mesNombre = mes.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
+&nbsp;
+&nbsp;    val servicios = tiposPorFecha.count { (fecha, tipo) -&gt;
+&nbsp;        YearMonth.from(fecha) == mes &amp;&amp; tipo != TipoDia.BLOQUEADO
+&nbsp;    }
+&nbsp;
+&nbsp;    val diasSemana = if (locale.language == &quot;en&quot;) {
+&nbsp;        listOf(&quot;M&quot;, &quot;T&quot;, &quot;W&quot;, &quot;T&quot;, &quot;F&quot;, &quot;S&quot;, &quot;S&quot;)
+&nbsp;    } else {
+&nbsp;        listOf(&quot;L&quot;, &quot;M&quot;, &quot;M&quot;, &quot;J&quot;, &quot;V&quot;, &quot;S&quot;, &quot;D&quot;)
+&nbsp;    }
+&nbsp;
+&nbsp;    Card(
+&nbsp;        colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+&nbsp;        shape = RoundedCornerShape(12.dp),
+&nbsp;        modifier = Modifier.fillMaxWidth()
+&nbsp;    ) {
+&nbsp;        Column(modifier = Modifier.padding(16.dp)) {
+&nbsp;            Row(
+&nbsp;                modifier = Modifier.fillMaxWidth(),
+&nbsp;                horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                verticalAlignment = Alignment.CenterVertically
+&nbsp;            ) {
+&nbsp;                Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;                    Text(&quot;$mesNombre ${mes.year}&quot;, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextoOscuro)
+&nbsp;                    Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                    Surface(color = AzulSecundario, shape = RoundedCornerShape(16.dp)) {
+&nbsp;                        Text(
+&nbsp;                            text = &quot;$servicios&quot;,
+&nbsp;                            color = AzulPrincipal,
+&nbsp;                            fontSize = 12.sp,
+&nbsp;                            fontWeight = FontWeight.Bold,
+&nbsp;                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;                Row {
+&nbsp;                    IconButton(onClick = { onMesChange(mes.minusMonths(1)) }, modifier = Modifier.size(40.dp)) {
+&nbsp;                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = TextoGris)
+&nbsp;                    }
+&nbsp;                    IconButton(onClick = { onMesChange(mes.plusMonths(1)) }, modifier = Modifier.size(40.dp)) {
+&nbsp;                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = TextoOscuro)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Spacer(modifier = Modifier.height(12.dp))
+&nbsp;
+&nbsp;            Row(modifier = Modifier.fillMaxWidth()) {
+&nbsp;                diasSemana.forEach { dia -&gt;
+&nbsp;                    Text(
+&nbsp;                        dia,
+&nbsp;                        color = TextoGris,
+&nbsp;                        fontWeight = FontWeight.Bold,
+&nbsp;                        fontSize = 14.sp,
+&nbsp;                        modifier = Modifier.weight(1f),
+&nbsp;                        textAlign = TextAlign.Center
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Spacer(modifier = Modifier.height(8.dp))
+&nbsp;
+&nbsp;            val huecos = (mes.atDay(1).dayOfWeek.value - 1) % 7
+&nbsp;            val celdas: List&lt;LocalDate?&gt; = List(huecos) { null } + (1..mes.lengthOfMonth()).map { mes.atDay(it) }
+&nbsp;
+&nbsp;            celdas.chunked(7).forEach { fila -&gt;
+&nbsp;                Row(modifier = Modifier.fillMaxWidth()) {
+&nbsp;                    fila.forEach { fecha -&gt;
+&nbsp;                        if (fecha == null) {
+&nbsp;                            Spacer(modifier = Modifier.weight(1f))
+&nbsp;                        } else {
+&nbsp;                            DiaCalendario(
+&nbsp;                                fecha = fecha,
+&nbsp;                                tipo = tiposPorFecha[fecha],
+&nbsp;                                esHoy = fecha == hoy,
+&nbsp;                                seleccionado = fecha == fechaSeleccionada,
+&nbsp;                                onClick = { onSeleccionar(fecha) }
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    repeat(7 - fila.size) { Spacer(modifier = Modifier.weight(1f)) }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Spacer(modifier = Modifier.height(12.dp))
+&nbsp;            HorizontalDivider(color = FondoPantalla)
+&nbsp;            Spacer(modifier = Modifier.height(12.dp))
+&nbsp;
+&nbsp;            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+&nbsp;                Row(modifier = Modifier.fillMaxWidth()) {
+&nbsp;                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.estado_pendiente)) {
+&nbsp;                        PuntoColor(estiloDe(TipoDia.SERVICIO_PENDIENTE).indicador)
+&nbsp;                    }
+&nbsp;                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.estado_confirmado)) {
+&nbsp;                        PuntoColor(estiloDe(TipoDia.SERVICIO_CONFIRMADO).indicador)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;                Row(modifier = Modifier.fillMaxWidth()) {
+&nbsp;                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.estado_bloqueado)) {
+&nbsp;                        Icon(Icons.Default.Close, contentDescription = null, tint = RojoTextoRechazar, modifier = Modifier.size(12.dp))
+&nbsp;                    }
+&nbsp;                    ItemLeyenda(Modifier.weight(1f), stringResource(R.string.leyenda_hoy)) {
+&nbsp;                        Box(modifier = Modifier.size(10.dp).border(1.5.dp, AzulPrincipal, CircleShape))
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun RowScope.DiaCalendario(
+&nbsp;    fecha: LocalDate,
+&nbsp;    tipo: TipoDia?,
+&nbsp;    esHoy: Boolean,
+&nbsp;    seleccionado: Boolean,
+&nbsp;    onClick: () -&gt; Unit
+&nbsp;) {
+&nbsp;    val estilo = tipo?.let { estiloDe(it) }
+&nbsp;
+&nbsp;    Column(
+&nbsp;        horizontalAlignment = Alignment.CenterHorizontally,
+&nbsp;        modifier = Modifier
+&nbsp;            .weight(1f)
+&nbsp;            .clip(RoundedCornerShape(8.dp))
+&nbsp;            .clickable(onClick = onClick)
+&nbsp;            .padding(vertical = 3.dp)
+&nbsp;    ) {
+&nbsp;        Box(
+&nbsp;            modifier = Modifier
+&nbsp;                .size(34.dp)
+&nbsp;                .clip(CircleShape)
+&nbsp;                .background(
+&nbsp;                    when {
+&nbsp;                        seleccionado -&gt; AzulPrincipal
+&nbsp;                        estilo != null -&gt; estilo.relleno
+&nbsp;                        else -&gt; Color.Transparent
+&nbsp;                    }
+&nbsp;                )
+&nbsp;                .then(
+&nbsp;                    if (esHoy &amp;&amp; !seleccionado) Modifier.border(1.5.dp, AzulPrincipal, CircleShape)
+&nbsp;                    else Modifier
+&nbsp;                ),
+&nbsp;            contentAlignment = Alignment.Center
+&nbsp;        ) {
+&nbsp;            Text(
+&nbsp;                text = fecha.dayOfMonth.toString(),
+&nbsp;                color = when {
+&nbsp;                    seleccionado -&gt; Color.White
+&nbsp;                    estilo != null -&gt; estilo.texto
+&nbsp;                    else -&gt; TextoOscuro
+&nbsp;                },
+&nbsp;                fontWeight = if (estilo != null || esHoy) FontWeight.Bold else FontWeight.Medium,
+&nbsp;                fontSize = 14.sp
+&nbsp;            )
+&nbsp;        }
+&nbsp;
+&nbsp;        Spacer(modifier = Modifier.height(2.dp))
+&nbsp;
+&nbsp;        when (tipo) {
+&nbsp;            TipoDia.BLOQUEADO -&gt;
+&nbsp;                Icon(Icons.Default.Close, contentDescription = null, tint = RojoTextoRechazar, modifier = Modifier.size(8.dp))
+&nbsp;            null -&gt;
+&nbsp;                Box(modifier = Modifier.size(4.dp))
+&nbsp;            else -&gt;
+&nbsp;                Box(modifier = Modifier.size(4.dp).clip(CircleShape).background(estilo?.indicador ?: Color.Transparent))
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun ItemLeyenda(modifier: Modifier, texto: String, marca: @Composable () -&gt; Unit) {
+&nbsp;    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+&nbsp;        marca()
+&nbsp;        Spacer(modifier = Modifier.width(6.dp))
+&nbsp;        Text(texto, fontSize = 12.sp, color = TextoGris, fontWeight = FontWeight.Medium)
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun PuntoColor(color: Color) {
+&nbsp;    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
+&nbsp;}
+&nbsp;
+&nbsp;@Preview(showBackground = true)
+&nbsp;@Composable
+&nbsp;fun PreviewDisponibilidad() {
+&nbsp;    MaterialTheme {
+&nbsp;        DisponibilidadScreen()
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

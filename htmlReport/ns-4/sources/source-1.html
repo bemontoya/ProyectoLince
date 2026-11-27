@@ -1,0 +1,190 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BackendClient</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: BackendClient (com.example.proyectolince.data.remote)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BackendClient</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BackendClient$create$$inlined$-addInterceptor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BackendClient$create$client$1$bearerToken$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.remote
+&nbsp;
+&nbsp;import android.content.Context
+&nbsp;import com.example.proyectolince.data.SessionManager
+&nbsp;import kotlinx.coroutines.runBlocking
+&nbsp;import okhttp3.OkHttpClient
+&nbsp;import okhttp3.logging.HttpLoggingInterceptor
+&nbsp;import retrofit2.Retrofit
+&nbsp;import retrofit2.converter.gson.GsonConverterFactory
+&nbsp;import java.util.concurrent.TimeUnit
+&nbsp;
+&nbsp;object BackendClient {
+&nbsp;
+&nbsp;    private const val BASE_URL = &quot;https://proyectolince-backend.onrender.com/&quot;
+&nbsp;
+&nbsp;    fun create(context: Context): LinceBackendApi {
+<b class="nc">&nbsp;        val sessionManager = SessionManager(context)</b>
+&nbsp;
+<b class="nc">&nbsp;        val logging = HttpLoggingInterceptor().apply {</b>
+<b class="nc">&nbsp;            level = HttpLoggingInterceptor.Level.BODY</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;
+<b class="nc">&nbsp;        val client = OkHttpClient.Builder()</b>
+<b class="nc">&nbsp;            .connectTimeout(60, TimeUnit.SECONDS)</b>
+<b class="nc">&nbsp;            .readTimeout(60, TimeUnit.SECONDS)</b>
+<b class="nc">&nbsp;            .writeTimeout(60, TimeUnit.SECONDS)</b>
+<b class="nc">&nbsp;            .addInterceptor { chain -&gt;</b>
+&nbsp;                val original = chain.request()
+<b class="nc">&nbsp;                val bearerToken = runBlocking { sessionManager.getBearerToken() }</b>
+&nbsp;                val requestBuilder = original.newBuilder()
+&nbsp;                    .header(&quot;Content-Type&quot;, &quot;application/json&quot;)
+&nbsp;
+&nbsp;                if (!bearerToken.isNullOrBlank()) {
+&nbsp;                    requestBuilder.header(&quot;Authorization&quot;, bearerToken)
+&nbsp;                }
+&nbsp;
+&nbsp;                chain.proceed(requestBuilder.build())
+&nbsp;            }
+<b class="nc">&nbsp;            .addInterceptor(logging)</b>
+<b class="nc">&nbsp;            .build()</b>
+&nbsp;
+<b class="nc">&nbsp;        return Retrofit.Builder()</b>
+<b class="nc">&nbsp;            .baseUrl(BASE_URL)</b>
+<b class="nc">&nbsp;            .client(client)</b>
+<b class="nc">&nbsp;            .addConverterFactory(GsonConverterFactory.create())</b>
+<b class="nc">&nbsp;            .build()</b>
+<b class="nc">&nbsp;            .create(LinceBackendApi::class.java)</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

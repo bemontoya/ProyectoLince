@@ -1,0 +1,147 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > OpenWeatherApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.network</a>
+</div>
+
+<h1>Coverage Summary for Class: OpenWeatherApi (com.example.proyectolince.data.network)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+  <tr>
+    <td class="name">OpenWeatherApi$DefaultImpls</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.network
+&nbsp;
+&nbsp;import com.google.gson.annotations.SerializedName
+&nbsp;import retrofit2.Retrofit
+&nbsp;import retrofit2.converter.gson.GsonConverterFactory
+&nbsp;import retrofit2.http.GET
+&nbsp;import retrofit2.http.Query
+&nbsp;
+&nbsp;data class WeatherResponse(
+&nbsp;    val main: MainData,
+&nbsp;    val weather: List&lt;WeatherData&gt;,
+&nbsp;    val name: String
+&nbsp;
+&nbsp;)
+&nbsp;data class MainData(val temp: Double)
+&nbsp;data class WeatherData(val description: String)
+&nbsp;
+&nbsp;interface OpenWeatherApi{
+&nbsp;    @GET(&quot;data/2.5/weather&quot;)
+&nbsp;    suspend fun obtenerClima(
+&nbsp;        @Query(&quot;q&quot;) ciudad: String,
+&nbsp;        @Query(&quot;appid&quot;) apiKey: String,
+<b class="nc">&nbsp;        @Query(&quot;units&quot;) unidades: String = &quot;metric&quot;,</b>
+<b class="nc">&nbsp;        @Query(&quot;lang&quot;) idioma: String = &quot;es&quot;</b>
+&nbsp;    ): WeatherResponse
+&nbsp;}
+&nbsp;
+&nbsp;object WeatherRetrofitInstance {
+&nbsp;    val api: OpenWeatherApi by lazy {
+&nbsp;        Retrofit.Builder()
+&nbsp;            .baseUrl(&quot;https://api.openweathermap.org/&quot;)
+&nbsp;            .addConverterFactory(GsonConverterFactory.create())
+&nbsp;            .build()
+&nbsp;            .create(OpenWeatherApi::class.java)
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

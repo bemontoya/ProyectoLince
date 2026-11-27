@@ -1,0 +1,1045 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FaseServicio</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.ui.screens</a>
+</div>
+
+<h1>Coverage Summary for Class: FaseServicio (com.example.proyectolince.ui.screens)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FaseServicio</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.ui.screens
+&nbsp;
+&nbsp;import android.Manifest
+&nbsp;import android.content.ActivityNotFoundException
+&nbsp;import android.content.Intent
+&nbsp;import android.content.pm.PackageManager
+&nbsp;import android.net.Uri
+&nbsp;import androidx.activity.compose.rememberLauncherForActivityResult
+&nbsp;import androidx.activity.result.contract.ActivityResultContracts
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.border
+&nbsp;import androidx.compose.foundation.clickable
+&nbsp;import androidx.compose.foundation.layout.*
+&nbsp;import androidx.compose.foundation.lazy.LazyColumn
+&nbsp;import androidx.compose.foundation.shape.CircleShape
+&nbsp;import androidx.compose.foundation.shape.RoundedCornerShape
+&nbsp;import androidx.compose.material.icons.Icons
+&nbsp;import androidx.compose.material.icons.automirrored.filled.AltRoute
+&nbsp;import androidx.compose.material.icons.automirrored.filled.ArrowBack
+&nbsp;import androidx.compose.material.icons.automirrored.filled.ExitToApp
+&nbsp;import androidx.compose.material.icons.filled.*
+&nbsp;import androidx.compose.material3.*
+&nbsp;import androidx.compose.runtime.*
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import androidx.compose.ui.graphics.Color
+&nbsp;import androidx.compose.ui.graphics.vector.ImageVector
+&nbsp;import androidx.compose.ui.platform.LocalContext
+&nbsp;import androidx.compose.ui.res.stringResource
+&nbsp;import androidx.compose.ui.text.font.FontWeight
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import androidx.compose.ui.unit.sp
+&nbsp;import androidx.core.content.ContextCompat
+&nbsp;import androidx.core.net.toUri
+&nbsp;import com.example.proyectolince.BuildConfig
+&nbsp;import com.example.proyectolince.R
+&nbsp;import com.example.proyectolince.data.LocationHelper
+&nbsp;import com.example.proyectolince.data.network.WeatherRetrofitInstance
+&nbsp;import com.example.proyectolince.ui.theme.*
+&nbsp;import com.example.proyectolince.ui.viewmodel.DetalleViewModel
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import java.util.Locale
+&nbsp;
+<b class="nc">&nbsp;private enum class FaseServicio { SIN_INICIAR, EN_CURSO, FINALIZADO }</b>
+&nbsp;
+&nbsp;@OptIn(ExperimentalMaterial3Api::class)
+&nbsp;@Composable
+&nbsp;fun DetalleScreen(
+&nbsp;    servicioId: String,
+&nbsp;    inicialUsuario: String = &quot;D&quot;,
+&nbsp;    rolUsuario: String = &quot;DRIVER&quot;,
+&nbsp;    viewModel: DetalleViewModel,
+&nbsp;    onVolver: () -&gt; Unit = {},
+&nbsp;    onNavigateToServicios: () -&gt; Unit = {},
+&nbsp;    onNavigateToDisponibilidad: () -&gt; Unit = {},
+&nbsp;    onNavigateToNotificaciones: () -&gt; Unit = {},
+&nbsp;    onNavigateToPerfil: () -&gt; Unit = {}
+&nbsp;) {
+&nbsp;    val contexto = LocalContext.current
+&nbsp;    val scope = rememberCoroutineScope()
+&nbsp;    val snackbarHostState = remember { SnackbarHostState() }
+&nbsp;    var temperatura by remember { mutableStateOf&lt;String?&gt;(null) }
+&nbsp;    var condicion by remember { mutableStateOf&lt;String?&gt;(null) }
+&nbsp;
+&nbsp;    val esGuia = rolUsuario.equals(&quot;GUIA&quot;, ignoreCase = true)
+&nbsp;    val esCoordinador = rolUsuario.equals(&quot;COORDINADOR&quot;, ignoreCase = true)
+&nbsp;
+&nbsp;    val servicio by viewModel.servicio.collectAsState()
+&nbsp;    val errorServicio by viewModel.errorServicio.collectAsState()
+&nbsp;    val estadoGps by viewModel.estadoGps.collectAsState()
+&nbsp;
+&nbsp;    val codigoMostrar = servicio?.codigo ?: servicioId
+&nbsp;    val horaMostrar = servicio?.horaPickup ?: &quot;--:--&quot;
+&nbsp;    val fechaMostrar = servicio?.fecha ?: &quot;&quot;
+&nbsp;    val tipoMostrar = servicio?.tipo ?: &quot;SERVICIO&quot;
+&nbsp;    val tituloExcursion = servicio?.descripcion?.takeIf { it.isNotBlank() } ?: &quot;Excursión / Tour&quot;
+&nbsp;    val origenMostrar = servicio?.pickup ?: &quot;---&quot;
+&nbsp;    val origenRefMostrar = servicio?.notas ?: if (esGuia) &quot;Meeting point&quot; else &quot;Pickup&quot;
+&nbsp;    val destinoMostrar = servicio?.dropoff ?: &quot;---&quot;
+&nbsp;    val destinoRefMostrar = servicio?.descripcionPadre ?: &quot;Dropoff&quot;
+&nbsp;    val grupoMostrar = servicio?.cliente?.nombre ?: &quot;---&quot;
+&nbsp;    val paxTotal = servicio?.pax?.total ?: 0
+&nbsp;    val contactoMostrar = servicio?.reserva?.referencia ?: &quot;---&quot;
+&nbsp;
+&nbsp;    val driverNombre = servicio?.transportista?.nombre ?: &quot;N/A&quot;
+&nbsp;    val driverId = servicio?.transportista?.id?.toString() ?: &quot;N/A&quot;
+&nbsp;    val guiaNombre = servicio?.guia?.nombre ?: &quot;N/A&quot;
+&nbsp;    val guiaId = servicio?.guia?.id?.toString() ?: &quot;N/A&quot;
+&nbsp;    val staffNombre = servicio?.transportista?.nombre ?: servicio?.guia?.nombre ?: &quot;N/A&quot;
+&nbsp;    val staffId = servicio?.transportista?.id?.toString() ?: servicio?.guia?.id?.toString() ?: &quot;N/A&quot;
+&nbsp;
+&nbsp;    val pasajerosPresentes = remember(paxTotal) {
+&nbsp;        mutableStateMapOf&lt;Int, Boolean&gt;().apply {
+&nbsp;            for (i in 1..paxTotal) put(i, false)
+&nbsp;        }
+&nbsp;    }
+&nbsp;    val totalPresentes = pasajerosPresentes.values.count { it }
+&nbsp;
+&nbsp;    fun refrescarGps() {
+&nbsp;        val tienePermiso = ContextCompat.checkSelfPermission(
+&nbsp;            contexto, Manifest.permission.ACCESS_FINE_LOCATION
+&nbsp;        ) == PackageManager.PERMISSION_GRANTED
+&nbsp;        if (tienePermiso) {
+&nbsp;            scope.launch {
+&nbsp;                val snap = LocationHelper.obtenerUbicacionActual(contexto)
+&nbsp;                viewModel.actualizarPosicionGps(snap)
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    val permissionLauncher = rememberLauncherForActivityResult(
+&nbsp;        ActivityResultContracts.RequestMultiplePermissions()
+&nbsp;    ) { perms -&gt;
+&nbsp;        if (perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+&nbsp;            perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+&nbsp;        ) {
+&nbsp;            refrescarGps()
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    LaunchedEffect(servicioId) {
+&nbsp;        viewModel.cargarServicioYRegistro(servicioId)
+&nbsp;
+&nbsp;        if (!esCoordinador) {
+&nbsp;            val tienePermiso = ContextCompat.checkSelfPermission(
+&nbsp;                contexto, Manifest.permission.ACCESS_FINE_LOCATION
+&nbsp;            ) == PackageManager.PERMISSION_GRANTED
+&nbsp;            if (tienePermiso) {
+&nbsp;                refrescarGps()
+&nbsp;            } else {
+&nbsp;                permissionLauncher.launch(
+&nbsp;                    arrayOf(
+&nbsp;                        Manifest.permission.ACCESS_FINE_LOCATION,
+&nbsp;                        Manifest.permission.ACCESS_COARSE_LOCATION
+&nbsp;                    )
+&nbsp;                )
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    LaunchedEffect(destinoMostrar) {
+&nbsp;        if (destinoMostrar != &quot;---&quot;) {
+&nbsp;            try {
+&nbsp;                val clima = WeatherRetrofitInstance.api.obtenerClima(destinoMostrar, BuildConfig.OPENWEATHER_API_KEY)
+&nbsp;                temperatura = &quot;${clima.main.temp.toInt()}°C&quot;
+&nbsp;                condicion = clima.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }
+&nbsp;            } catch (_: Exception) {
+&nbsp;                temperatura = &quot;--&quot;
+&nbsp;                condicion = &quot;---&quot;
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    val registroActual by viewModel.registroActual.collectAsState()
+&nbsp;
+&nbsp;    val fase = when {
+&nbsp;        registroActual?.horaCheckOut != null -&gt; FaseServicio.FINALIZADO
+&nbsp;        registroActual?.horaCheckIn != null -&gt; FaseServicio.EN_CURSO
+&nbsp;        else -&gt; FaseServicio.SIN_INICIAR
+&nbsp;    }
+&nbsp;
+&nbsp;    val horaCheckIn = registroActual?.horaCheckIn.orEmpty()
+&nbsp;    val horaCheckOut = registroActual?.horaCheckOut.orEmpty()
+&nbsp;    var observacionesText by remember { mutableStateOf(&quot;&quot;) }
+&nbsp;
+&nbsp;    LaunchedEffect(registroActual?.observaciones) {
+&nbsp;        observacionesText = registroActual?.observaciones.orEmpty()
+&nbsp;    }
+&nbsp;
+&nbsp;    fun abrirMapa() {
+&nbsp;        val intent = Intent(Intent.ACTION_VIEW, (&quot;geo:0,0?q=&quot; + Uri.encode(destinoMostrar)).toUri())
+&nbsp;        try {
+&nbsp;            contexto.startActivity(intent)
+&nbsp;        } catch (_: ActivityNotFoundException) {
+&nbsp;            scope.launch { snackbarHostState.showSnackbar(&quot;Maps app not installed&quot;) }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    val badgeFase = when (fase) {
+&nbsp;        FaseServicio.SIN_INICIAR -&gt; Triple(&quot;CONFIRMED&quot;, VerdeFondoBadge, VerdeConfirmado)
+&nbsp;        FaseServicio.EN_CURSO -&gt; Triple(&quot;ACTIVE&quot;, AzulSecundario, AzulPrincipal)
+&nbsp;        FaseServicio.FINALIZADO -&gt; Triple(&quot;FINISHED&quot;, Color(0xFFE2E8F0), TextoGris)
+&nbsp;    }
+&nbsp;
+&nbsp;    val coloresNav = NavigationBarItemDefaults.colors(
+&nbsp;        selectedIconColor = AzulPrincipal,
+&nbsp;        selectedTextColor = AzulPrincipal,
+&nbsp;        indicatorColor = AzulSecundario
+&nbsp;    )
+&nbsp;
+&nbsp;    Scaffold(
+&nbsp;        containerColor = FondoPantalla,
+&nbsp;        snackbarHost = { SnackbarHost(snackbarHostState) },
+&nbsp;        topBar = {
+&nbsp;            TopAppBar(
+&nbsp;                title = {
+&nbsp;                    Column {
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.subtitulo_app),
+&nbsp;                            fontSize = 11.sp,
+&nbsp;                            color = TextoGris,
+&nbsp;                            fontWeight = FontWeight.Bold
+&nbsp;                        )
+&nbsp;                        Text(
+&nbsp;                            text = when {
+&nbsp;                                esGuia -&gt; stringResource(R.string.titulo_detalle_excursion)
+&nbsp;                                esCoordinador -&gt; stringResource(R.string.titulo_supervision)
+&nbsp;                                else -&gt; stringResource(R.string.titulo_detalle)
+&nbsp;                            },
+&nbsp;                            fontSize = 20.sp,
+&nbsp;                            color = TextoOscuro,
+&nbsp;                            fontWeight = FontWeight.Bold
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                },
+&nbsp;                actions = {
+&nbsp;                    IconButton(onClick = onNavigateToNotificaciones) {
+&nbsp;                        Icon(Icons.Default.NotificationsNone, contentDescription = null, tint = TextoOscuro)
+&nbsp;                    }
+&nbsp;                    Box(
+&nbsp;                        modifier = Modifier
+&nbsp;                            .padding(end = 12.dp)
+&nbsp;                            .size(32.dp)
+&nbsp;                            .clip(CircleShape)
+&nbsp;                            .background(AzulPrincipal)
+&nbsp;                            .clickable { onNavigateToPerfil() },
+&nbsp;                        contentAlignment = Alignment.Center
+&nbsp;                    ) {
+&nbsp;                        Text(inicialUsuario, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+&nbsp;                    }
+&nbsp;                },
+&nbsp;                colors = TopAppBarDefaults.topAppBarColors(containerColor = FondoPantalla)
+&nbsp;            )
+&nbsp;        },
+&nbsp;        bottomBar = {
+&nbsp;            Column {
+&nbsp;                Surface(color = FondoPantalla, modifier = Modifier.fillMaxWidth()) {
+&nbsp;                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+&nbsp;                        if (esCoordinador) {
+&nbsp;                            val estadoTexto = when (fase) {
+&nbsp;                                FaseServicio.SIN_INICIAR -&gt; &quot;WAITING FIELD CHECK-IN&quot;
+&nbsp;                                FaseServicio.EN_CURSO -&gt; &quot;ACTIVE (CHECK-IN OK)&quot;
+&nbsp;                                FaseServicio.FINALIZADO -&gt; &quot;FINISHED&quot;
+&nbsp;                            }
+&nbsp;                            val bgBarra = when (fase) {
+&nbsp;                                FaseServicio.SIN_INICIAR -&gt; AzulSecundario
+&nbsp;                                FaseServicio.EN_CURSO -&gt; VerdeFondoBadge
+&nbsp;                                FaseServicio.FINALIZADO -&gt; Color(0xFFE2E8F0)
+&nbsp;                            }
+&nbsp;                            val txtBarra = when (fase) {
+&nbsp;                                FaseServicio.SIN_INICIAR -&gt; AzulPrincipal
+&nbsp;                                FaseServicio.EN_CURSO -&gt; VerdeConfirmado
+&nbsp;                                FaseServicio.FINALIZADO -&gt; TextoGris
+&nbsp;                            }
+&nbsp;                            Surface(
+&nbsp;                                color = bgBarra,
+&nbsp;                                shape = RoundedCornerShape(12.dp),
+&nbsp;                                modifier = Modifier.fillMaxWidth().height(50.dp)
+&nbsp;                            ) {
+&nbsp;                                Row(
+&nbsp;                                    horizontalArrangement = Arrangement.Center,
+&nbsp;                                    verticalAlignment = Alignment.CenterVertically
+&nbsp;                                ) {
+&nbsp;                                    Icon(Icons.Default.Visibility, contentDescription = null, tint = txtBarra, modifier = Modifier.size(18.dp))
+&nbsp;                                    Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                                    Text(estadoTexto, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = txtBarra)
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        } else {
+&nbsp;                            when (fase) {
+&nbsp;                                FaseServicio.SIN_INICIAR -&gt; BotonPrincipal(
+&nbsp;                                    texto = if (esGuia) stringResource(R.string.btn_checkin_grupo) else stringResource(R.string.btn_checkin_gps),
+&nbsp;                                    icono = if (esGuia) Icons.Default.GroupAdd else Icons.Default.HowToReg,
+&nbsp;                                    onClick = {
+&nbsp;                                        scope.launch {
+&nbsp;                                            val snap = LocationHelper.obtenerUbicacionActual(contexto) ?: estadoGps.gpsActual
+&nbsp;                                            viewModel.actualizarPosicionGps(snap)
+&nbsp;                                            viewModel.registrarCheckInConGps(
+&nbsp;                                                context = contexto,
+&nbsp;                                                codigoServicio = codigoMostrar,
+&nbsp;                                                nombreLugar = origenMostrar,
+&nbsp;                                                horaPickupProgramada = horaMostrar,
+&nbsp;                                                gps = snap
+&nbsp;                                            ) { mensaje -&gt;
+&nbsp;                                                scope.launch { snackbarHostState.showSnackbar(mensaje) }
+&nbsp;                                            }
+&nbsp;                                        }
+&nbsp;                                    }
+&nbsp;                                )
+&nbsp;                                FaseServicio.EN_CURSO -&gt; BotonPrincipal(
+&nbsp;                                    texto = if (esGuia) stringResource(R.string.btn_finalizar_tour) else stringResource(R.string.btn_checkout_gps),
+&nbsp;                                    icono = Icons.AutoMirrored.Filled.ExitToApp,
+&nbsp;                                    onClick = {
+&nbsp;                                        scope.launch {
+&nbsp;                                            val snap = LocationHelper.obtenerUbicacionActual(contexto) ?: estadoGps.gpsActual
+&nbsp;                                            viewModel.actualizarPosicionGps(snap)
+&nbsp;                                            val obsFinal = if (esGuia &amp;&amp; paxTotal &gt; 0) {
+&nbsp;                                                val resumenPax = &quot;Pax: $totalPresentes/$paxTotal&quot;
+&nbsp;                                                if (observacionesText.isBlank()) resumenPax else &quot;$resumenPax • $observacionesText&quot;
+&nbsp;                                            } else {
+&nbsp;                                                observacionesText
+&nbsp;                                            }
+&nbsp;                                            viewModel.registrarCheckOutConGps(
+&nbsp;                                                context = contexto,
+&nbsp;                                                codigoServicio = codigoMostrar,
+&nbsp;                                                nombreLugarDestino = destinoMostrar,
+&nbsp;                                                observaciones = obsFinal,
+&nbsp;                                                gps = snap
+&nbsp;                                            ) { mensaje -&gt;
+&nbsp;                                                scope.launch { snackbarHostState.showSnackbar(mensaje) }
+&nbsp;                                            }
+&nbsp;                                        }
+&nbsp;                                    }
+&nbsp;                                )
+&nbsp;                                FaseServicio.FINALIZADO -&gt; Surface(
+&nbsp;                                    color = VerdeConfirmado,
+&nbsp;                                    shape = RoundedCornerShape(12.dp),
+&nbsp;                                    modifier = Modifier.fillMaxWidth().height(52.dp)
+&nbsp;                                ) {
+&nbsp;                                    Row(
+&nbsp;                                        horizontalArrangement = Arrangement.Center,
+&nbsp;                                        verticalAlignment = Alignment.CenterVertically
+&nbsp;                                    ) {
+&nbsp;                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+&nbsp;                                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                                        Text(
+&nbsp;                                            text = &quot;FINISHED&quot;,
+&nbsp;                                            fontSize = 14.sp,
+&nbsp;                                            fontWeight = FontWeight.Bold,
+&nbsp;                                            color = Color.White
+&nbsp;                                        )
+&nbsp;                                    }
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                NavigationBar(containerColor = Color.White) {
+&nbsp;                    NavigationBarItem(
+&nbsp;                        selected = true,
+&nbsp;                        onClick = onNavigateToServicios,
+&nbsp;                        icon = { Icon(Icons.AutoMirrored.Filled.AltRoute, contentDescription = null) },
+&nbsp;                        label = { Text(stringResource(R.string.nav_servicios), fontSize = 11.sp) },
+&nbsp;                        colors = coloresNav
+&nbsp;                    )
+&nbsp;                    NavigationBarItem(
+&nbsp;                        selected = false,
+&nbsp;                        onClick = onNavigateToDisponibilidad,
+&nbsp;                        icon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
+&nbsp;                        label = { Text(stringResource(R.string.nav_disponibilidad), fontSize = 11.sp) },
+&nbsp;                        colors = coloresNav
+&nbsp;                    )
+&nbsp;                    NavigationBarItem(
+&nbsp;                        selected = false,
+&nbsp;                        onClick = onNavigateToPerfil,
+&nbsp;                        icon = { Icon(Icons.Default.PersonOutline, contentDescription = null) },
+&nbsp;                        label = { Text(stringResource(R.string.nav_perfil), fontSize = 11.sp) },
+&nbsp;                        colors = coloresNav
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    ) { paddingValues -&gt;
+&nbsp;        LazyColumn(
+&nbsp;            modifier = Modifier
+&nbsp;                .fillMaxSize()
+&nbsp;                .padding(paddingValues)
+&nbsp;                .padding(horizontal = 16.dp),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(16.dp)
+&nbsp;        ) {
+&nbsp;            item {
+&nbsp;                Row(
+&nbsp;                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+&nbsp;                    horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                    verticalAlignment = Alignment.CenterVertically
+&nbsp;                ) {
+&nbsp;                    TextButton(onClick = onVolver, contentPadding = PaddingValues(0.dp)) {
+&nbsp;                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextoGris, modifier = Modifier.size(18.dp))
+&nbsp;                        Spacer(modifier = Modifier.width(4.dp))
+&nbsp;                        Text(stringResource(R.string.btn_volver), fontSize = 15.sp, color = TextoGris, fontWeight = FontWeight.Medium)
+&nbsp;                    }
+&nbsp;
+&nbsp;                    Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;                        Text(codigoMostrar, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                        Surface(color = badgeFase.second, shape = RoundedCornerShape(16.dp)) {
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+&nbsp;                                verticalAlignment = Alignment.CenterVertically
+&nbsp;                            ) {
+&nbsp;                                Box(modifier = Modifier.size(6.dp).background(badgeFase.third, CircleShape))
+&nbsp;                                Spacer(modifier = Modifier.width(6.dp))
+&nbsp;                                Text(badgeFase.first, fontSize = 11.sp, color = badgeFase.third, fontWeight = FontWeight.Bold)
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            errorServicio?.let { msgError -&gt;
+&nbsp;                item {
+&nbsp;                    Card(
+&nbsp;                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEE2E2)),
+&nbsp;                        shape = RoundedCornerShape(12.dp),
+&nbsp;                        modifier = Modifier.fillMaxWidth()
+&nbsp;                    ) {
+&nbsp;                        Text(
+&nbsp;                            text = &quot;API Lince: $msgError&quot;,
+&nbsp;                            fontSize = 12.sp,
+&nbsp;                            color = Color(0xFFB91C1C),
+&nbsp;                            fontWeight = FontWeight.SemiBold,
+&nbsp;                            modifier = Modifier.padding(12.dp)
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            if (!esCoordinador) {
+&nbsp;                item {
+&nbsp;                    val distText = estadoGps.distanciaMetros?.let { String.format(Locale.US, &quot;%.0f m&quot;, it) } ?: &quot;...&quot;
+&nbsp;                    val colorGeo = if (estadoGps.dentroDeRadio) VerdeConfirmado else Color(0xFFD97706)
+&nbsp;                    val bgGeo = if (estadoGps.dentroDeRadio) VerdeFondoBadge else Color(0xFFFEF3C7)
+&nbsp;
+&nbsp;                    Card(
+&nbsp;                        colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                        shape = RoundedCornerShape(16.dp),
+&nbsp;                        modifier = Modifier.fillMaxWidth()
+&nbsp;                    ) {
+&nbsp;                        Column(modifier = Modifier.padding(14.dp)) {
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier.fillMaxWidth(),
+&nbsp;                                horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                                verticalAlignment = Alignment.CenterVertically
+&nbsp;                            ) {
+&nbsp;                                EtiquetaSeccion(
+&nbsp;                                    icono = Icons.Default.MyLocation,
+&nbsp;                                    texto = &quot;GEOFENCE (150M)&quot;
+&nbsp;                                )
+&nbsp;                                TextButton(onClick = { refrescarGps() }, contentPadding = PaddingValues(0.dp)) {
+&nbsp;                                    Text(stringResource(R.string.actualizar_gps), fontSize = 12.sp, color = AzulPrincipal, fontWeight = FontWeight.Bold)
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                            Spacer(modifier = Modifier.height(6.dp))
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier.fillMaxWidth(),
+&nbsp;                                horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                                verticalAlignment = Alignment.CenterVertically
+&nbsp;                            ) {
+&nbsp;                                Column {
+&nbsp;                                    Text(
+&nbsp;                                        text = estadoGps.gpsActual?.let {
+&nbsp;                                            String.format(Locale.US, &quot;GPS: %.4f, %.4f (±%.0fm)&quot;, it.latitud, it.longitud, it.precisionMetros)
+&nbsp;                                        } ?: &quot;GPS: ...&quot;,
+&nbsp;                                        fontSize = 12.sp,
+&nbsp;                                        color = TextoOscuro,
+&nbsp;                                        fontWeight = FontWeight.Medium
+&nbsp;                                    )
+&nbsp;                                    Text(
+&nbsp;                                        text = &quot;Dist: $distText&quot;,
+&nbsp;                                        fontSize = 12.sp,
+&nbsp;                                        color = TextoGris
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;                                Surface(color = bgGeo, shape = RoundedCornerShape(12.dp)) {
+&nbsp;                                    Text(
+&nbsp;                                        text = if (estadoGps.dentroDeRadio) stringResource(R.string.en_zona) else stringResource(R.string.fuera_radio),
+&nbsp;                                        fontSize = 11.sp,
+&nbsp;                                        fontWeight = FontWeight.Bold,
+&nbsp;                                        color = colorGeo,
+&nbsp;                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                            estadoGps.mensajeValidacion?.let { msg -&gt;
+&nbsp;                                Spacer(modifier = Modifier.height(6.dp))
+&nbsp;                                Text(msg, fontSize = 12.sp, color = AzulPrincipal, fontWeight = FontWeight.SemiBold)
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                Card(
+&nbsp;                    colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                    shape = RoundedCornerShape(16.dp),
+&nbsp;                    modifier = Modifier.fillMaxWidth()
+&nbsp;                ) {
+&nbsp;                    Column(modifier = Modifier.padding(16.dp)) {
+&nbsp;                        Row(
+&nbsp;                            modifier = Modifier.fillMaxWidth(),
+&nbsp;                            horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                            verticalAlignment = Alignment.Top
+&nbsp;                        ) {
+&nbsp;                            Column {
+&nbsp;                                Text(horaMostrar, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                Text(fechaMostrar, fontSize = 12.sp, color = TextoGris)
+&nbsp;                            }
+&nbsp;                            Surface(color = AzulSecundario, shape = RoundedCornerShape(12.dp)) {
+&nbsp;                                Text(
+&nbsp;                                    tipoMostrar,
+&nbsp;                                    fontSize = 11.sp,
+&nbsp;                                    color = AzulPrincipal,
+&nbsp;                                    fontWeight = FontWeight.Bold,
+&nbsp;                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+&nbsp;                                )
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;
+&nbsp;                        Spacer(modifier = Modifier.height(16.dp))
+&nbsp;
+&nbsp;                        if (esGuia) {
+&nbsp;                            Text(
+&nbsp;                                text = &quot;TOUR / ACTIVITY&quot;,
+&nbsp;                                fontSize = 11.sp,
+&nbsp;                                fontWeight = FontWeight.Bold,
+&nbsp;                                color = TextoGris
+&nbsp;                            )
+&nbsp;                            Text(
+&nbsp;                                text = tituloExcursion,
+&nbsp;                                fontSize = 17.sp,
+&nbsp;                                fontWeight = FontWeight.Bold,
+&nbsp;                                color = TextoOscuro
+&nbsp;                            )
+&nbsp;
+&nbsp;                            Spacer(modifier = Modifier.height(14.dp))
+&nbsp;                            HorizontalDivider(color = FondoPantalla, thickness = 1.dp)
+&nbsp;                            Spacer(modifier = Modifier.height(14.dp))
+&nbsp;
+&nbsp;                            Row(verticalAlignment = Alignment.Top) {
+&nbsp;                                Icon(
+&nbsp;                                    imageVector = Icons.Default.MeetingRoom,
+&nbsp;                                    contentDescription = null,
+&nbsp;                                    tint = AzulPrincipal,
+&nbsp;                                    modifier = Modifier.size(20.dp)
+&nbsp;                                )
+&nbsp;                                Spacer(modifier = Modifier.width(10.dp))
+&nbsp;                                Column {
+&nbsp;                                    Text(
+&nbsp;                                        text = stringResource(R.string.punto_encuentro),
+&nbsp;                                        fontSize = 11.sp,
+&nbsp;                                        fontWeight = FontWeight.Bold,
+&nbsp;                                        color = TextoGris
+&nbsp;                                    )
+&nbsp;                                    Text(
+&nbsp;                                        text = origenMostrar,
+&nbsp;                                        fontSize = 15.sp,
+&nbsp;                                        fontWeight = FontWeight.Bold,
+&nbsp;                                        color = TextoOscuro
+&nbsp;                                    )
+&nbsp;                                    Text(
+&nbsp;                                        text = origenRefMostrar,
+&nbsp;                                        fontSize = 12.sp,
+&nbsp;                                        color = TextoGris
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        } else {
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier
+&nbsp;                                    .fillMaxWidth()
+&nbsp;                                    .height(IntrinsicSize.Min)
+&nbsp;                            ) {
+&nbsp;                                Column(
+&nbsp;                                    horizontalAlignment = Alignment.CenterHorizontally,
+&nbsp;                                    modifier = Modifier.padding(top = 4.dp, end = 12.dp)
+&nbsp;                                ) {
+&nbsp;                                    Box(modifier = Modifier.size(12.dp).background(AzulPrincipal, CircleShape))
+&nbsp;                                    Box(modifier = Modifier.width(2.dp).weight(1f).background(VerdeConfirmado))
+&nbsp;                                    Box(modifier = Modifier.size(12.dp).background(VerdeConfirmado, CircleShape))
+&nbsp;                                }
+&nbsp;
+&nbsp;                                Column(modifier = Modifier.weight(1f)) {
+&nbsp;                                    Text(stringResource(R.string.origen), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                                    Text(origenMostrar, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                    Text(origenRefMostrar, fontSize = 12.sp, color = TextoGris)
+&nbsp;
+&nbsp;                                    Spacer(modifier = Modifier.height(16.dp))
+&nbsp;
+&nbsp;                                    Text(stringResource(R.string.destino), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                                    Text(destinoMostrar, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                    Text(destinoRefMostrar, fontSize = 12.sp, color = TextoGris)
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                Card(
+&nbsp;                    colors = CardDefaults.cardColors(containerColor = AzulSecundario),
+&nbsp;                    shape = RoundedCornerShape(12.dp),
+&nbsp;                    modifier = Modifier.fillMaxWidth()
+&nbsp;                ) {
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.padding(12.dp),
+&nbsp;                        verticalAlignment = Alignment.CenterVertically
+&nbsp;                    ) {
+&nbsp;                        Icon(Icons.Default.WbSunny, contentDescription = null, tint = AzulPrincipal)
+&nbsp;                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                        Column {
+&nbsp;                            Text(
+&nbsp;                                text = &quot;Weather / $destinoMostrar&quot;,
+&nbsp;                                fontSize = 11.sp,
+&nbsp;                                fontWeight = FontWeight.Bold,
+&nbsp;                                color = AzulPrincipal
+&nbsp;                            )
+&nbsp;                            Text(&quot;${temperatura ?: &quot;--&quot;} · ${condicion ?: &quot;...&quot;}&quot;, fontSize = 13.sp, color = TextoOscuro)
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            if (esCoordinador) {
+&nbsp;                item {
+&nbsp;                    Card(
+&nbsp;                        colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                        shape = RoundedCornerShape(16.dp),
+&nbsp;                        modifier = Modifier.fillMaxWidth()
+&nbsp;                    ) {
+&nbsp;                        Column(
+&nbsp;                            modifier = Modifier.padding(16.dp),
+&nbsp;                            verticalArrangement = Arrangement.spacedBy(12.dp)
+&nbsp;                        ) {
+&nbsp;                            EtiquetaSeccion(Icons.Default.AssignmentInd, &quot;STAFF&quot;)
+&nbsp;
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier.fillMaxWidth(),
+&nbsp;                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+&nbsp;                            ) {
+&nbsp;                                Surface(
+&nbsp;                                    color = FondoPantalla,
+&nbsp;                                    shape = RoundedCornerShape(12.dp),
+&nbsp;                                    modifier = Modifier.weight(1f)
+&nbsp;                                ) {
+&nbsp;                                    Column(modifier = Modifier.padding(12.dp)) {
+&nbsp;                                        Text(&quot;DRIVER&quot;, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                                        Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                                        Text(driverNombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                        Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                                        Text(&quot;ID: $driverId&quot;, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AzulPrincipal)
+&nbsp;                                    }
+&nbsp;                                }
+&nbsp;
+&nbsp;                                if (!tipoMostrar.equals(&quot;TRANSFER&quot;, ignoreCase = true)) {
+&nbsp;                                    Surface(
+&nbsp;                                        color = FondoPantalla,
+&nbsp;                                        shape = RoundedCornerShape(12.dp),
+&nbsp;                                        modifier = Modifier.weight(1f)
+&nbsp;                                    ) {
+&nbsp;                                        Column(modifier = Modifier.padding(12.dp)) {
+&nbsp;                                            Text(&quot;GUIDE&quot;, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                                            Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                                            Text(guiaNombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                            Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                                            Text(&quot;ID: $guiaId&quot;, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AzulPrincipal)
+&nbsp;                                        }
+&nbsp;                                    }
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;
+&nbsp;                            HorizontalDivider(color = FondoPantalla, thickness = 1.dp)
+&nbsp;
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier.fillMaxWidth(),
+&nbsp;                                horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                                verticalAlignment = Alignment.CenterVertically
+&nbsp;                            ) {
+&nbsp;                                Column {
+&nbsp;                                    Text(&quot;CLIENT&quot;, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                                    Text(grupoMostrar, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                    Text(&quot;Ref: $contactoMostrar&quot;, fontSize = 12.sp, color = TextoGris)
+&nbsp;                                }
+&nbsp;                                Surface(color = AzulSecundario, shape = RoundedCornerShape(8.dp)) {
+&nbsp;                                    Text(
+&nbsp;                                        &quot;$paxTotal pax&quot;,
+&nbsp;                                        fontSize = 12.sp,
+&nbsp;                                        fontWeight = FontWeight.Bold,
+&nbsp;                                        color = AzulPrincipal,
+&nbsp;                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } else {
+&nbsp;                item {
+&nbsp;                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+&nbsp;                        Card(
+&nbsp;                            colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                            shape = RoundedCornerShape(16.dp),
+&nbsp;                            modifier = Modifier.weight(1f)
+&nbsp;                        ) {
+&nbsp;                            Column(modifier = Modifier.padding(14.dp)) {
+&nbsp;                                EtiquetaSeccion(Icons.Default.Group, stringResource(R.string.pasajeros))
+&nbsp;                                Spacer(modifier = Modifier.height(6.dp))
+&nbsp;                                Text(grupoMostrar, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextoOscuro)
+&nbsp;                                Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                                Surface(color = FondoPantalla, shape = RoundedCornerShape(6.dp)) {
+&nbsp;                                    Text(
+&nbsp;                                        &quot;$paxTotal pax&quot;,
+&nbsp;                                        fontSize = 11.sp,
+&nbsp;                                        fontWeight = FontWeight.Bold,
+&nbsp;                                        color = TextoGris,
+&nbsp;                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;
+&nbsp;                                Spacer(modifier = Modifier.height(12.dp))
+&nbsp;
+&nbsp;                                Text(&quot;REF&quot;, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;                                Text(contactoMostrar, fontSize = 12.sp, color = TextoOscuro)
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;
+&nbsp;                        Card(
+&nbsp;                            colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                            shape = RoundedCornerShape(16.dp),
+&nbsp;                            modifier = Modifier.weight(1f)
+&nbsp;                        ) {
+&nbsp;                            Column(modifier = Modifier.padding(14.dp)) {
+&nbsp;                                EtiquetaSeccion(
+&nbsp;                                    icono = if (esGuia) Icons.Default.DirectionsBus else Icons.Default.DirectionsCar,
+&nbsp;                                    texto = stringResource(R.string.recurso_asignado)
+&nbsp;                                )
+&nbsp;                                Spacer(modifier = Modifier.height(6.dp))
+&nbsp;                                Text(
+&nbsp;                                    text = if (esGuia) driverNombre else staffNombre,
+&nbsp;                                    fontSize = 13.sp,
+&nbsp;                                    fontWeight = FontWeight.Bold,
+&nbsp;                                    color = TextoOscuro
+&nbsp;                                )
+&nbsp;                                Text(
+&nbsp;                                    text = servicio?.descripcion ?: &quot;---&quot;,
+&nbsp;                                    fontSize = 11.sp,
+&nbsp;                                    color = TextoGris
+&nbsp;                                )
+&nbsp;
+&nbsp;                                Spacer(modifier = Modifier.height(18.dp))
+&nbsp;
+&nbsp;                                Text(
+&nbsp;                                    text = &quot;ID&quot;,
+&nbsp;                                    fontSize = 11.sp,
+&nbsp;                                    fontWeight = FontWeight.Bold,
+&nbsp;                                    color = TextoGris
+&nbsp;                                )
+&nbsp;                                Spacer(modifier = Modifier.height(4.dp))
+&nbsp;
+&nbsp;                                Box(
+&nbsp;                                    modifier = Modifier
+&nbsp;                                        .border(1.dp, TextoOscuro, RoundedCornerShape(6.dp))
+&nbsp;                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+&nbsp;                                ) {
+&nbsp;                                    Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;                                        Box(modifier = Modifier.size(6.dp).background(AzulPrincipal, CircleShape))
+&nbsp;                                        Spacer(modifier = Modifier.width(6.dp))
+&nbsp;                                        Text(
+&nbsp;                                            text = if (esGuia) driverId else staffId,
+&nbsp;                                            fontSize = 12.sp,
+&nbsp;                                            fontWeight = FontWeight.Bold,
+&nbsp;                                            color = TextoOscuro
+&nbsp;                                        )
+&nbsp;                                    }
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            if (esGuia &amp;&amp; paxTotal &gt; 0) {
+&nbsp;                item {
+&nbsp;                    Card(
+&nbsp;                        colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                        shape = RoundedCornerShape(16.dp),
+&nbsp;                        modifier = Modifier.fillMaxWidth()
+&nbsp;                    ) {
+&nbsp;                        Column(
+&nbsp;                            modifier = Modifier.padding(16.dp),
+&nbsp;                            verticalArrangement = Arrangement.spacedBy(10.dp)
+&nbsp;                        ) {
+&nbsp;                            Row(
+&nbsp;                                modifier = Modifier.fillMaxWidth(),
+&nbsp;                                horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                                verticalAlignment = Alignment.CenterVertically
+&nbsp;                            ) {
+&nbsp;                                EtiquetaSeccion(Icons.Default.FactCheck, &quot;PAX CHECKLIST&quot;)
+&nbsp;                                Surface(
+&nbsp;                                    color = if (totalPresentes == paxTotal) VerdeFondoBadge else AzulSecundario,
+&nbsp;                                    shape = RoundedCornerShape(10.dp)
+&nbsp;                                ) {
+&nbsp;                                    Text(
+&nbsp;                                        text = &quot;$totalPresentes / $paxTotal&quot;,
+&nbsp;                                        fontSize = 11.sp,
+&nbsp;                                        fontWeight = FontWeight.Bold,
+&nbsp;                                        color = if (totalPresentes == paxTotal) VerdeConfirmado else AzulPrincipal,
+&nbsp;                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;
+&nbsp;                            for (indice in 1..paxTotal) {
+&nbsp;                                val presente = pasajerosPresentes[indice] == true
+&nbsp;                                Row(
+&nbsp;                                    modifier = Modifier
+&nbsp;                                        .fillMaxWidth()
+&nbsp;                                        .clip(RoundedCornerShape(10.dp))
+&nbsp;                                        .background(if (presente) VerdeFondoBadge.copy(alpha = 0.5f) else FondoPantalla)
+&nbsp;                                        .clickable(enabled = fase != FaseServicio.FINALIZADO) {
+&nbsp;                                            pasajerosPresentes[indice] = !presente
+&nbsp;                                        }
+&nbsp;                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+&nbsp;                                    verticalAlignment = Alignment.CenterVertically,
+&nbsp;                                    horizontalArrangement = Arrangement.SpaceBetween
+&nbsp;                                ) {
+&nbsp;                                    Column {
+&nbsp;                                        Text(
+&nbsp;                                            text = &quot;Pax #$indice — $grupoMostrar&quot;,
+&nbsp;                                            fontSize = 13.sp,
+&nbsp;                                            fontWeight = FontWeight.SemiBold,
+&nbsp;                                            color = TextoOscuro
+&nbsp;                                        )
+&nbsp;                                        Text(
+&nbsp;                                            text = &quot;Ref $contactoMostrar&quot;,
+&nbsp;                                            fontSize = 11.sp,
+&nbsp;                                            color = TextoGris
+&nbsp;                                        )
+&nbsp;                                    }
+&nbsp;                                    Checkbox(
+&nbsp;                                        checked = presente,
+&nbsp;                                        enabled = fase != FaseServicio.FINALIZADO,
+&nbsp;                                        onCheckedChange = { pasajerosPresentes[indice] = it },
+&nbsp;                                        colors = CheckboxDefaults.colors(checkedColor = VerdeConfirmado)
+&nbsp;                                    )
+&nbsp;                                }
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            if (esCoordinador || fase != FaseServicio.SIN_INICIAR) {
+&nbsp;                item {
+&nbsp;                    Card(
+&nbsp;                        colors = CardDefaults.cardColors(containerColor = Color.White),
+&nbsp;                        shape = RoundedCornerShape(16.dp),
+&nbsp;                        modifier = Modifier.fillMaxWidth()
+&nbsp;                    ) {
+&nbsp;                        Column(modifier = Modifier.padding(16.dp)) {
+&nbsp;                            EtiquetaSeccion(Icons.Default.Checklist, &quot;LOG&quot;)
+&nbsp;                            Spacer(modifier = Modifier.height(10.dp))
+&nbsp;
+&nbsp;                            FilaRegistro(
+&nbsp;                                &quot;Check-in&quot;,
+&nbsp;                                horaCheckIn.ifBlank { &quot;---&quot; },
+&nbsp;                                if (horaCheckIn.isBlank()) TextoGris else TextoOscuro
+&nbsp;                            )
+&nbsp;                            HorizontalDivider(color = Color(0xFFE2E8F0))
+&nbsp;                            FilaRegistro(
+&nbsp;                                &quot;Check-out&quot;,
+&nbsp;                                horaCheckOut.ifBlank { &quot;---&quot; },
+&nbsp;                                if (horaCheckOut.isBlank()) TextoGris else TextoOscuro
+&nbsp;                            )
+&nbsp;
+&nbsp;                            if (!esCoordinador || observacionesText.isNotBlank()) {
+&nbsp;                                Spacer(modifier = Modifier.height(10.dp))
+&nbsp;
+&nbsp;                                OutlinedTextField(
+&nbsp;                                    value = observacionesText,
+&nbsp;                                    onValueChange = { observacionesText = it },
+&nbsp;                                    label = { Text(&quot;Notes&quot;) },
+&nbsp;                                    readOnly = esCoordinador || fase == FaseServicio.FINALIZADO,
+&nbsp;                                    minLines = 2,
+&nbsp;                                    shape = RoundedCornerShape(12.dp),
+&nbsp;                                    modifier = Modifier.fillMaxWidth()
+&nbsp;                                )
+&nbsp;                            }
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            item {
+&nbsp;                if (!esCoordinador &amp;&amp; !esGuia) {
+&nbsp;                    OutlinedButton(
+&nbsp;                        onClick = { abrirMapa() },
+&nbsp;                        shape = RoundedCornerShape(12.dp),
+&nbsp;                        colors = ButtonDefaults.outlinedButtonColors(
+&nbsp;                            containerColor = AzulSecundario,
+&nbsp;                            contentColor = AzulPrincipal
+&nbsp;                        ),
+&nbsp;                        modifier = Modifier.fillMaxWidth().height(48.dp)
+&nbsp;                    ) {
+&nbsp;                        Icon(Icons.Default.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
+&nbsp;                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                        Text(stringResource(R.string.abrir_mapa), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;                Spacer(modifier = Modifier.height(12.dp))
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun BotonPrincipal(texto: String, icono: ImageVector, onClick: () -&gt; Unit) {
+&nbsp;    Button(
+&nbsp;        onClick = onClick,
+&nbsp;        shape = RoundedCornerShape(12.dp),
+&nbsp;        colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal, contentColor = Color.White),
+&nbsp;        modifier = Modifier.fillMaxWidth().height(52.dp)
+&nbsp;    ) {
+&nbsp;        Icon(icono, contentDescription = null, modifier = Modifier.size(20.dp))
+&nbsp;        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;        Text(texto, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun EtiquetaSeccion(icono: ImageVector, texto: String) {
+&nbsp;    Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;        Icon(icono, contentDescription = null, tint = AzulPrincipal, modifier = Modifier.size(16.dp))
+&nbsp;        Spacer(modifier = Modifier.width(6.dp))
+&nbsp;        Text(texto, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextoGris)
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun FilaRegistro(etiqueta: String, valor: String, colorValor: Color) {
+&nbsp;    Row(
+&nbsp;        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+&nbsp;        horizontalArrangement = Arrangement.SpaceBetween
+&nbsp;    ) {
+&nbsp;        Text(etiqueta, fontSize = 13.sp, color = TextoGris)
+&nbsp;        Text(valor, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colorValor)
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,573 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DetalleViewModel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.ui.viewmodel</a>
+</div>
+
+<h1>Coverage Summary for Class: DetalleViewModel (com.example.proyectolince.ui.viewmodel)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DetalleViewModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60,4%
+  </span>
+  <span class="absValue">
+    (29/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91,3%
+  </span>
+  <span class="absValue">
+    (63/69)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DetalleViewModel$cargarGeocercaLugar$1</td>
+  </tr>
+  <tr>
+    <td class="name">DetalleViewModel$cargarServicioYRegistro$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DetalleViewModel$Companion</td>
+  </tr>
+  <tr>
+    <td class="name">DetalleViewModel$registrarCheckInConGps$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (15/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83,1%
+  </span>
+  <span class="absValue">
+    (54/65)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DetalleViewModel$registrarCheckOutConGps$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (10/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80,4%
+  </span>
+  <span class="absValue">
+    (41/51)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    55,9%
+  </span>
+  <span class="absValue">
+    (57/102)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    86%
+  </span>
+  <span class="absValue">
+    (166/193)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.ui.viewmodel
+&nbsp;
+&nbsp;import android.content.Context
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import com.example.proyectolince.data.*
+&nbsp;import com.example.proyectolince.data.network.BackendRetrofitInstance
+&nbsp;import com.example.proyectolince.data.network.CheckInOutBackendRequest
+&nbsp;import com.example.proyectolince.data.network.GeocercaDto
+&nbsp;import com.example.proyectolince.data.network.ServicioLinceDto
+&nbsp;import com.example.proyectolince.data.repository.LinceRepository
+&nbsp;import com.example.proyectolince.data.repository.ResultadoApi
+&nbsp;import com.example.proyectolince.data.sync.SyncOperacionesWorker
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.asStateFlow
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import java.text.SimpleDateFormat
+&nbsp;import java.time.LocalTime
+&nbsp;import java.time.format.DateTimeFormatter
+&nbsp;import java.time.temporal.ChronoUnit
+&nbsp;import java.util.Date
+&nbsp;import java.util.Locale
+&nbsp;import java.util.UUID
+&nbsp;
+&nbsp;data class EstadoGpsGeocerca(
+&nbsp;    val gpsActual: GpsSnapshot? = null,
+&nbsp;    val geocercaDestino: GeocercaDto? = null,
+&nbsp;    val distanciaMetros: Double? = null,
+&nbsp;    val dentroDeRadio: Boolean = false,
+&nbsp;    val llegadaVerificada: Boolean = false,
+&nbsp;    val incidenciaDetectada: String? = null,
+&nbsp;    val mensajeValidacion: String? = null,
+&nbsp;    val sincronizadoBackend: Boolean = false
+&nbsp;)
+&nbsp;
+&nbsp;class DetalleViewModel(
+<b class="fc">&nbsp;    private val repository: RegistroRepository,</b>
+<b class="fc">&nbsp;    private val sessionManager: SessionManager? = null,</b>
+<b class="fc">&nbsp;    private val linceRepository: LinceRepository = LinceRepository()</b>
+<b class="fc">&nbsp;) : ViewModel() {</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _servicio = MutableStateFlow&lt;ServicioLinceDto?&gt;(null)</b>
+<b class="fc">&nbsp;    val servicio: StateFlow&lt;ServicioLinceDto?&gt; = _servicio.asStateFlow()</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _errorServicio = MutableStateFlow&lt;String?&gt;(null)</b>
+<b class="fc">&nbsp;    val errorServicio: StateFlow&lt;String?&gt; = _errorServicio.asStateFlow()</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _registroActual = MutableStateFlow&lt;RegistroOperacional?&gt;(null)</b>
+<b class="fc">&nbsp;    val registroActual: StateFlow&lt;RegistroOperacional?&gt; = _registroActual.asStateFlow()</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _estadoGps = MutableStateFlow(EstadoGpsGeocerca())</b>
+<b class="fc">&nbsp;    val estadoGps: StateFlow&lt;EstadoGpsGeocerca&gt; = _estadoGps.asStateFlow()</b>
+&nbsp;
+&nbsp;    companion object {
+&nbsp;        const val RADIO_DEFAULT_METROS = 150.0
+&nbsp;        const val PRECISION_MAXIMA_METROS = 50f
+&nbsp;        const val ANTICIPACION_MINIMA_MINUTOS = 15L
+&nbsp;
+&nbsp;        // Catálogo local de hoteles/pickups de respaldo (Anexo B: coordenadas de respaldo cuando pickup es texto)
+<b class="fc">&nbsp;        private val catalogoGeocercasFallback = listOf(</b>
+<b class="fc">&nbsp;            GeocercaDto(1L, &quot;Aeropuerto Arturo Merino Benítez&quot;, -33.3930, -70.7858, 150.0),</b>
+<b class="fc">&nbsp;            GeocercaDto(2L, &quot;Hotel W Santiago&quot;, -33.4161, -70.6022, 150.0),</b>
+<b class="fc">&nbsp;            GeocercaDto(3L, &quot;Hotel Mandarin Oriental&quot;, -33.4019, -70.5778, 150.0),</b>
+<b class="fc">&nbsp;            GeocercaDto(4L, &quot;Hotel Ritz-Carlton&quot;, -33.4152, -70.6003, 150.0),</b>
+<b class="fc">&nbsp;            GeocercaDto(5L, &quot;Hotel Sheraton Santiago&quot;, -33.4216, -70.6194, 150.0),</b>
+<b class="fc">&nbsp;            GeocercaDto(6L, &quot;Plaza de Armas Santiago&quot;, -33.4378, -70.6504, 150.0)</b>
+&nbsp;        )
+&nbsp;    }
+&nbsp;
+&nbsp;    fun cargarServicioYRegistro(servicioId: String) {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            _registroActual.value = repository.obtenerPorCodigo(servicioId)</b>
+&nbsp;
+<b class="fc">&nbsp;            when (val res = linceRepository.obtenerDetalleServicio(servicioId)) {</b>
+<b class="fc">&nbsp;                is ResultadoApi.Exito -&gt; {</b>
+<b class="fc">&nbsp;                    _servicio.value = res.datos</b>
+<b class="fc">&nbsp;                    _errorServicio.value = null</b>
+<b class="pc">&nbsp;                    res.datos.pickup?.let { cargarGeocercaLugar(it) }</b>
+&nbsp;                }
+<b class="fc">&nbsp;                is ResultadoApi.Error -&gt; {</b>
+<b class="fc">&nbsp;                    _errorServicio.value = res.mensaje</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private suspend fun cargarGeocercaLugar(nombreLugar: String) {
+<b class="fc">&nbsp;        var geocercaEncontrada: GeocercaDto? = null</b>
+&nbsp;        try {
+<b class="pc">&nbsp;            val bearer = sessionManager?.getBearerToken()</b>
+<b class="pc">&nbsp;            if (bearer != null) {</b>
+<b class="nc">&nbsp;                val resp = BackendRetrofitInstance.api.getGeocercas(bearer)</b>
+<b class="nc">&nbsp;                if (resp.isSuccessful) {</b>
+<b class="nc">&nbsp;                    geocercaEncontrada = resp.body()?.find {</b>
+<b class="nc">&nbsp;                        it.nombreLugar.contains(nombreLugar.trim(), ignoreCase = true) ||</b>
+<b class="nc">&nbsp;                                nombreLugar.trim().contains(it.nombreLugar, ignoreCase = true)</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (_: Exception) {
+&nbsp;        }
+&nbsp;
+&nbsp;        // Respaldo catálogo local si el backend no está disponible o no tiene ese hotel
+<b class="pc">&nbsp;        if (geocercaEncontrada == null) {</b>
+<b class="pc">&nbsp;            geocercaEncontrada = catalogoGeocercasFallback.find {</b>
+<b class="fc">&nbsp;                it.nombreLugar.contains(nombreLugar.trim(), ignoreCase = true) ||</b>
+<b class="fc">&nbsp;                        nombreLugar.trim().contains(it.nombreLugar, ignoreCase = true)</b>
+<b class="nc">&nbsp;            } ?: GeocercaDto(0L, nombreLugar, -33.4378, -70.6504, RADIO_DEFAULT_METROS)</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        _estadoGps.value = _estadoGps.value.copy(geocercaDestino = geocercaEncontrada)</b>
+<b class="fc">&nbsp;        recalcularDistancia()</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun actualizarPosicionGps(snapshot: GpsSnapshot?) {
+<b class="fc">&nbsp;        _estadoGps.value = _estadoGps.value.copy(gpsActual = snapshot)</b>
+<b class="fc">&nbsp;        recalcularDistancia()</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun recalcularDistancia() {
+<b class="fc">&nbsp;        val gps = _estadoGps.value.gpsActual ?: return</b>
+<b class="pc">&nbsp;        val geo = _estadoGps.value.geocercaDestino ?: return</b>
+<b class="fc">&nbsp;        val dist = LocationHelper.calcularDistanciaHaversineMetros(</b>
+<b class="fc">&nbsp;            gps.latitud, gps.longitud, geo.latitud, geo.longitud</b>
+&nbsp;        )
+<b class="fc">&nbsp;        _estadoGps.value = _estadoGps.value.copy(</b>
+<b class="fc">&nbsp;            distanciaMetros = dist,</b>
+<b class="pc">&nbsp;            dentroDeRadio = dist &lt;= geo.radioMetros</b>
+&nbsp;        )
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Evalúa las 3 reglas operativas de Southbound (Anexo B):
+&nbsp;     * 1. Precisión GPS &lt;= 50 m
+&nbsp;     * 2. Distancia &lt;= radio de geocerca (150 m)
+&nbsp;     * 3. Llegada con al menos 15 minutos de anticipación respecto a horaPickupProgramada
+&nbsp;     */
+&nbsp;    fun evaluarReglasCheckIn(
+&nbsp;        gps: GpsSnapshot?,
+&nbsp;        horaPickupProgramada: String,
+<b class="fc">&nbsp;        horaLlegada: LocalTime = LocalTime.now()</b>
+&nbsp;    ): Pair&lt;Boolean, String&gt; {
+<b class="fc">&nbsp;        if (gps == null) {</b>
+<b class="fc">&nbsp;            return false to &quot;INCIDENCIA: Sin señal GPS disponible&quot;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        if (gps.precisionMetros &gt; PRECISION_MAXIMA_METROS) {</b>
+<b class="fc">&nbsp;            return false to &quot;INCIDENCIA: Precisión GPS insuficiente (±${gps.precisionMetros.toInt()}m &gt; 50m)&quot;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        val geo = _estadoGps.value.geocercaDestino</b>
+<b class="fc">&nbsp;        val radio = geo?.radioMetros ?: RADIO_DEFAULT_METROS</b>
+<b class="fc">&nbsp;        val distancia = if (geo != null) {</b>
+<b class="fc">&nbsp;            LocationHelper.calcularDistanciaHaversineMetros(</b>
+<b class="fc">&nbsp;                gps.latitud, gps.longitud, geo.latitud, geo.longitud</b>
+&nbsp;            )
+&nbsp;        } else {
+<b class="pc">&nbsp;            _estadoGps.value.distanciaMetros ?: 0.0</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (distancia &gt; radio) {</b>
+<b class="fc">&nbsp;            return false to &quot;INCIDENCIA: Fuera de geocerca (${distancia.toInt()}m &gt; ${radio.toInt()}m)&quot;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        val minutosAnticipacion = calcularMinutosAnticipacion(horaPickupProgramada, horaLlegada)</b>
+<b class="pc">&nbsp;        if (minutosAnticipacion != null &amp;&amp; minutosAnticipacion &lt; ANTICIPACION_MINIMA_MINUTOS) {</b>
+<b class="fc">&nbsp;            return false to if (minutosAnticipacion &lt; 0) {</b>
+<b class="fc">&nbsp;                &quot;INCIDENCIA: Llegada con atraso (${-minutosAnticipacion} min tarde)&quot;</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                &quot;INCIDENCIA: Llegada con menos de 15 min de anticipación ($minutosAnticipacion min)&quot;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return true to &quot;Llegada verificada en zona (${distancia.toInt()}m)&quot;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    internal fun calcularMinutosAnticipacion(
+&nbsp;        horaPickupProgramada: String,
+&nbsp;        horaLlegada: LocalTime
+&nbsp;    ): Long? {
+<b class="fc">&nbsp;        val limpia = horaPickupProgramada.trim().take(5)</b>
+&nbsp;        return try {
+<b class="fc">&nbsp;            val pickup = LocalTime.parse(limpia, DateTimeFormatter.ofPattern(&quot;HH:mm&quot;))</b>
+<b class="fc">&nbsp;            ChronoUnit.MINUTES.between(horaLlegada, pickup)</b>
+&nbsp;        } catch (_: Exception) {
+<b class="fc">&nbsp;            null</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun registrarCheckInConGps(
+&nbsp;        context: Context,
+&nbsp;        codigoServicio: String,
+&nbsp;        nombreLugar: String,
+&nbsp;        horaPickupProgramada: String,
+&nbsp;        gps: GpsSnapshot?,
+&nbsp;        onResultado: (String) -&gt; Unit
+&nbsp;    ) {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            val (verificada, detalleValidacion) = evaluarReglasCheckIn(gps, horaPickupProgramada)</b>
+<b class="pc">&nbsp;            val incidencia = if (verificada) null else detalleValidacion</b>
+&nbsp;
+<b class="fc">&nbsp;            _estadoGps.value = _estadoGps.value.copy(</b>
+<b class="fc">&nbsp;                llegadaVerificada = verificada,</b>
+<b class="fc">&nbsp;                incidenciaDetectada = incidencia,</b>
+<b class="fc">&nbsp;                mensajeValidacion = detalleValidacion</b>
+&nbsp;            )
+&nbsp;
+<b class="pc">&nbsp;            val lat = gps?.latitud ?: 0.0</b>
+<b class="pc">&nbsp;            val lon = gps?.longitud ?: 0.0</b>
+<b class="pc">&nbsp;            val acc = gps?.precisionMetros ?: 999f</b>
+<b class="fc">&nbsp;            val idemKey = &quot;CI-${codigoServicio}-${UUID.randomUUID()}&quot;</b>
+&nbsp;
+<b class="fc">&nbsp;            val horaActual = SimpleDateFormat(&quot;HH:mm:ss&quot;, Locale.getDefault()).format(Date())</b>
+<b class="fc">&nbsp;            val registroPrevio = repository.obtenerPorCodigo(codigoServicio)</b>
+<b class="pc">&nbsp;            val obsConValidacion = listOfNotNull(registroPrevio?.observaciones, detalleValidacion)</b>
+<b class="fc">&nbsp;                .joinToString(&quot; | &quot;)</b>
+&nbsp;
+<b class="pc">&nbsp;            val nuevoRegistro = registroPrevio?.copy(</b>
+<b class="nc">&nbsp;                horaCheckIn = horaActual,</b>
+<b class="nc">&nbsp;                observaciones = obsConValidacion,</b>
+<b class="nc">&nbsp;                sincronizado = false,</b>
+<b class="nc">&nbsp;                latitudCheckIn = lat,</b>
+<b class="nc">&nbsp;                longitudCheckIn = lon,</b>
+<b class="nc">&nbsp;                precisionCheckIn = acc,</b>
+<b class="nc">&nbsp;                nombreLugarOrigen = nombreLugar,</b>
+<b class="nc">&nbsp;                horaPickupProgramada = horaPickupProgramada,</b>
+<b class="nc">&nbsp;                idempotencyKeyCheckIn = idemKey</b>
+<b class="fc">&nbsp;            ) ?: RegistroOperacional(</b>
+<b class="fc">&nbsp;                codigoServicio = codigoServicio,</b>
+<b class="fc">&nbsp;                horaCheckIn = horaActual,</b>
+<b class="fc">&nbsp;                horaCheckOut = null,</b>
+<b class="fc">&nbsp;                observaciones = obsConValidacion,</b>
+<b class="fc">&nbsp;                sincronizado = false,</b>
+<b class="fc">&nbsp;                latitudCheckIn = lat,</b>
+<b class="fc">&nbsp;                longitudCheckIn = lon,</b>
+<b class="fc">&nbsp;                precisionCheckIn = acc,</b>
+<b class="fc">&nbsp;                nombreLugarOrigen = nombreLugar,</b>
+<b class="fc">&nbsp;                horaPickupProgramada = horaPickupProgramada,</b>
+<b class="fc">&nbsp;                idempotencyKeyCheckIn = idemKey</b>
+&nbsp;            )
+<b class="fc">&nbsp;            repository.guardarRegistro(nuevoRegistro)</b>
+<b class="fc">&nbsp;            val guardado = repository.obtenerPorCodigo(codigoServicio)</b>
+<b class="fc">&nbsp;            _registroActual.value = guardado</b>
+&nbsp;
+&nbsp;            try {
+<b class="pc">&nbsp;                val bearer = sessionManager?.getBearerToken()</b>
+<b class="fc">&nbsp;                if (bearer != null) {</b>
+<b class="fc">&nbsp;                    val req = CheckInOutBackendRequest(</b>
+<b class="fc">&nbsp;                        idempotencyKey = idemKey,</b>
+<b class="fc">&nbsp;                        servicioId = codigoServicio,</b>
+<b class="fc">&nbsp;                        tipoEvento = &quot;CHECK_IN&quot;,</b>
+<b class="fc">&nbsp;                        latitud = lat,</b>
+<b class="fc">&nbsp;                        longitud = lon,</b>
+<b class="fc">&nbsp;                        precisionGpsMetros = acc,</b>
+<b class="fc">&nbsp;                        nombreLugar = nombreLugar,</b>
+<b class="fc">&nbsp;                        horaPickupProgramada = horaPickupProgramada</b>
+&nbsp;                    )
+<b class="fc">&nbsp;                    val resp = BackendRetrofitInstance.api.registrarCheckInOut(bearer, req)</b>
+<b class="pc">&nbsp;                    if (resp.isSuccessful &amp;&amp; resp.body() != null) {</b>
+<b class="pc">&nbsp;                        guardado?.let { repository.marcarComoSincronizado(it.id) }</b>
+<b class="pc">&nbsp;                        _registroActual.value = guardado?.copy(sincronizado = true)</b>
+<b class="fc">&nbsp;                        val body = resp.body()!!</b>
+<b class="pc">&nbsp;                        val msg = body.observacionValidacion ?: detalleValidacion</b>
+<b class="fc">&nbsp;                        _estadoGps.value = _estadoGps.value.copy(</b>
+<b class="fc">&nbsp;                            mensajeValidacion = msg,</b>
+<b class="fc">&nbsp;                            sincronizadoBackend = true,</b>
+<b class="pc">&nbsp;                            distanciaMetros = body.distanciaGeocercaMetros ?: _estadoGps.value.distanciaMetros</b>
+&nbsp;                        )
+<b class="fc">&nbsp;                        onResultado(msg)</b>
+&nbsp;                        return@launch
+&nbsp;                    }
+&nbsp;                }
+<b class="fc">&nbsp;                SyncOperacionesWorker.encolarSincronizacion(context)</b>
+<b class="fc">&nbsp;                onResultado(&quot;$detalleValidacion (en cola offline)&quot;)</b>
+&nbsp;            } catch (_: Exception) {
+<b class="nc">&nbsp;                SyncOperacionesWorker.encolarSincronizacion(context)</b>
+<b class="nc">&nbsp;                onResultado(&quot;$detalleValidacion (guardado offline)&quot;)</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun registrarCheckOutConGps(
+&nbsp;        context: Context,
+&nbsp;        codigoServicio: String,
+&nbsp;        nombreLugarDestino: String,
+&nbsp;        observaciones: String,
+&nbsp;        gps: GpsSnapshot?,
+&nbsp;        onResultado: (String) -&gt; Unit
+&nbsp;    ) {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="pc">&nbsp;            val lat = gps?.latitud ?: 0.0</b>
+<b class="pc">&nbsp;            val lon = gps?.longitud ?: 0.0</b>
+<b class="pc">&nbsp;            val acc = gps?.precisionMetros ?: 10f</b>
+<b class="fc">&nbsp;            val idemKey = &quot;CO-${codigoServicio}-${UUID.randomUUID()}&quot;</b>
+&nbsp;
+<b class="fc">&nbsp;            val horaActual = SimpleDateFormat(&quot;HH:mm:ss&quot;, Locale.getDefault()).format(Date())</b>
+<b class="fc">&nbsp;            val registroPrevio = repository.obtenerPorCodigo(codigoServicio)</b>
+<b class="pc">&nbsp;            val nuevoRegistro = registroPrevio?.copy(</b>
+<b class="nc">&nbsp;                horaCheckOut = horaActual,</b>
+<b class="nc">&nbsp;                observaciones = observaciones,</b>
+<b class="nc">&nbsp;                sincronizado = false,</b>
+<b class="nc">&nbsp;                latitudCheckOut = lat,</b>
+<b class="nc">&nbsp;                longitudCheckOut = lon,</b>
+<b class="nc">&nbsp;                precisionCheckOut = acc,</b>
+<b class="nc">&nbsp;                nombreLugarDestino = nombreLugarDestino,</b>
+<b class="nc">&nbsp;                idempotencyKeyCheckOut = idemKey</b>
+<b class="fc">&nbsp;            ) ?: RegistroOperacional(</b>
+<b class="fc">&nbsp;                codigoServicio = codigoServicio,</b>
+<b class="fc">&nbsp;                horaCheckIn = null,</b>
+<b class="fc">&nbsp;                horaCheckOut = horaActual,</b>
+<b class="fc">&nbsp;                observaciones = observaciones,</b>
+<b class="fc">&nbsp;                sincronizado = false,</b>
+<b class="fc">&nbsp;                latitudCheckOut = lat,</b>
+<b class="fc">&nbsp;                longitudCheckOut = lon,</b>
+<b class="fc">&nbsp;                precisionCheckOut = acc,</b>
+<b class="fc">&nbsp;                nombreLugarDestino = nombreLugarDestino,</b>
+<b class="fc">&nbsp;                idempotencyKeyCheckOut = idemKey</b>
+&nbsp;            )
+<b class="fc">&nbsp;            repository.guardarRegistro(nuevoRegistro)</b>
+<b class="fc">&nbsp;            val guardado = repository.obtenerPorCodigo(codigoServicio)</b>
+<b class="fc">&nbsp;            _registroActual.value = guardado</b>
+&nbsp;
+&nbsp;            try {
+<b class="pc">&nbsp;                val bearer = sessionManager?.getBearerToken()</b>
+<b class="fc">&nbsp;                if (bearer != null) {</b>
+<b class="fc">&nbsp;                    val req = CheckInOutBackendRequest(</b>
+<b class="fc">&nbsp;                        idempotencyKey = idemKey,</b>
+<b class="fc">&nbsp;                        servicioId = codigoServicio,</b>
+<b class="fc">&nbsp;                        tipoEvento = &quot;CHECK_OUT&quot;,</b>
+<b class="fc">&nbsp;                        latitud = lat,</b>
+<b class="fc">&nbsp;                        longitud = lon,</b>
+<b class="fc">&nbsp;                        precisionGpsMetros = acc,</b>
+<b class="fc">&nbsp;                        nombreLugar = nombreLugarDestino</b>
+&nbsp;                    )
+<b class="fc">&nbsp;                    val resp = BackendRetrofitInstance.api.registrarCheckInOut(bearer, req)</b>
+<b class="pc">&nbsp;                    if (resp.isSuccessful) {</b>
+<b class="pc">&nbsp;                        guardado?.let { repository.marcarComoSincronizado(it.id) }</b>
+<b class="pc">&nbsp;                        _registroActual.value = guardado?.copy(sincronizado = true)</b>
+<b class="fc">&nbsp;                        _estadoGps.value = _estadoGps.value.copy(</b>
+<b class="fc">&nbsp;                            mensajeValidacion = &quot;Check-out sincronizado con servidor&quot;,</b>
+<b class="fc">&nbsp;                            sincronizadoBackend = true</b>
+&nbsp;                        )
+<b class="fc">&nbsp;                        onResultado(&quot;Check-out sincronizado con servidor&quot;)</b>
+&nbsp;                        return@launch
+&nbsp;                    }
+&nbsp;                }
+<b class="fc">&nbsp;                SyncOperacionesWorker.encolarSincronizacion(context)</b>
+<b class="fc">&nbsp;                onResultado(&quot;Sin red: Check-out en cola offline (WorkManager)&quot;)</b>
+&nbsp;            } catch (_: Exception) {
+<b class="nc">&nbsp;                SyncOperacionesWorker.encolarSincronizacion(context)</b>
+<b class="nc">&nbsp;                onResultado(&quot;Modo offline: Check-out guardado en Room y encolado&quot;)</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

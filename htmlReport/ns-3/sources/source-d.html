@@ -1,0 +1,169 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DisponibilidadDto</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.network</a>
+</div>
+
+<h1>Coverage Summary for Class: DisponibilidadDto (com.example.proyectolince.data.network)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DisponibilidadDto</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.network
+&nbsp;
+&nbsp;data class BackendLoginRequest(
+&nbsp;    val email: String,
+&nbsp;    val password: String
+&nbsp;)
+&nbsp;
+&nbsp;data class BackendLoginResponse(
+&nbsp;    val token: String,
+&nbsp;    val email: String,
+&nbsp;    val nombre: String,
+&nbsp;    val rol: String,          // DRIVER, GUIA, COORDINADOR
+&nbsp;    val linceStaffId: String?
+&nbsp;)
+&nbsp;
+&nbsp;data class ConfirmacionBackendRequest(
+&nbsp;    val idempotencyKey: String,
+&nbsp;    val servicioId: String,
+&nbsp;    val estado: String,       // CONFIRMADO o RECHAZADO
+&nbsp;    val motivoRechazo: String? = null
+&nbsp;)
+&nbsp;
+&nbsp;data class CheckInOutBackendRequest(
+&nbsp;    val idempotencyKey: String,
+&nbsp;    val servicioId: String,
+&nbsp;    val tipoEvento: String,   // CHECK_IN o CHECK_OUT
+&nbsp;    val latitud: Double,
+&nbsp;    val longitud: Double,
+&nbsp;    val precisionGpsMetros: Float? = null,
+&nbsp;    val nombreLugar: String? = null,
+&nbsp;    val horaPickupProgramada: String? = null
+&nbsp;)
+&nbsp;
+&nbsp;data class CheckInOutBackendResponse(
+&nbsp;    val id: Long,
+&nbsp;    val servicioId: String,
+&nbsp;    val tipoEvento: String,
+&nbsp;    val distanciaGeocercaMetros: Double?,
+&nbsp;    val validado: Boolean,
+&nbsp;    val observacionValidacion: String?,
+&nbsp;    val fechaHoraRegistro: String
+&nbsp;)
+&nbsp;
+&nbsp;data class GeocercaDto(
+&nbsp;    val id: Long,
+&nbsp;    val nombreLugar: String,
+&nbsp;    val latitud: Double,
+&nbsp;    val longitud: Double,
+&nbsp;    val radioMetros: Double
+&nbsp;)
+&nbsp;
+&nbsp;data class DisponibilidadBackendRequest(
+&nbsp;    val fechaBloqueada: String, // YYYY-MM-DD
+&nbsp;    val franjaHoraria: String = &quot;DIA_COMPLETO&quot;,
+&nbsp;    val motivo: String? = null,
+&nbsp;    val fechasConServiciosAsignados: List&lt;String&gt; = emptyList()
+&nbsp;)
+&nbsp;
+<b class="nc">&nbsp;data class DisponibilidadDto(</b>
+<b class="nc">&nbsp;    val id: Long,</b>
+<b class="nc">&nbsp;    val usuarioEmail: String,</b>
+<b class="nc">&nbsp;    val fechaBloqueada: String,</b>
+<b class="nc">&nbsp;    val franjaHoraria: String?,</b>
+<b class="nc">&nbsp;    val motivo: String?</b>
+&nbsp;)
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

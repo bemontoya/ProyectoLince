@@ -1,0 +1,220 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SessionManagerKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data</a>
+</div>
+
+<h1>Coverage Summary for Class: SessionManagerKt (com.example.proyectolince.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SessionManagerKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data
+&nbsp;
+&nbsp;import android.content.Context
+&nbsp;import androidx.datastore.preferences.core.edit
+&nbsp;import androidx.datastore.preferences.core.intPreferencesKey
+&nbsp;import androidx.datastore.preferences.core.stringPreferencesKey
+&nbsp;import androidx.datastore.preferences.preferencesDataStore
+&nbsp;import kotlinx.coroutines.flow.Flow
+&nbsp;import kotlinx.coroutines.flow.first
+&nbsp;import kotlinx.coroutines.flow.map
+&nbsp;
+<b class="fc">&nbsp;private val Context.dataStore by preferencesDataStore(name = &quot;lince_session_prefs&quot;)</b>
+&nbsp;
+&nbsp;class SessionManager(private val context: Context) {
+&nbsp;
+&nbsp;    companion object {
+&nbsp;        private val KEY_TOKEN = stringPreferencesKey(&quot;jwt_token&quot;)
+&nbsp;        private val KEY_EMAIL = stringPreferencesKey(&quot;user_email&quot;)
+&nbsp;        private val KEY_NOMBRE = stringPreferencesKey(&quot;user_nombre&quot;)
+&nbsp;        private val KEY_ROL = stringPreferencesKey(&quot;user_rol&quot;)
+&nbsp;        private val KEY_RECURSO_ID = stringPreferencesKey(&quot;user_recurso_id&quot;)
+&nbsp;        private val KEY_LINCE_RECURSO_ID = intPreferencesKey(&quot;lince_recurso_id&quot;)
+&nbsp;        private val KEY_OFICINA = stringPreferencesKey(&quot;oficina_codigo&quot;)
+&nbsp;        private val KEY_IDIOMA = stringPreferencesKey(&quot;app_language&quot;)
+&nbsp;        private val KEY_TELEFONO = stringPreferencesKey(&quot;user_telefono&quot;)
+&nbsp;        private val KEY_TURNO = stringPreferencesKey(&quot;user_turno&quot;)
+&nbsp;    }
+&nbsp;
+&nbsp;    val tokenFlow: Flow&lt;String?&gt; = context.dataStore.data.map { it[KEY_TOKEN] }
+&nbsp;    val emailFlow: Flow&lt;String&gt; = context.dataStore.data.map { it[KEY_EMAIL] ?: &quot;&quot; }
+&nbsp;    val nombreFlow: Flow&lt;String&gt; = context.dataStore.data.map { it[KEY_NOMBRE] ?: &quot;Operador&quot; }
+&nbsp;    val rolFlow: Flow&lt;String&gt; = context.dataStore.data.map { it[KEY_ROL] ?: &quot;DRIVER&quot; }
+&nbsp;    val linceRecursoIdFlow: Flow&lt;Int?&gt; = context.dataStore.data.map { it[KEY_LINCE_RECURSO_ID] }
+&nbsp;    val oficinaCodigoFlow: Flow&lt;String?&gt; = context.dataStore.data.map { it[KEY_OFICINA] }
+&nbsp;    val recursoIdFlow: Flow&lt;String?&gt; = context.dataStore.data.map { prefs -&gt;
+&nbsp;        prefs[KEY_RECURSO_ID] ?: inferirRecursoPorEmail(prefs[KEY_EMAIL])
+&nbsp;    }
+&nbsp;    val idiomaFlow: Flow&lt;String&gt; = context.dataStore.data.map { it[KEY_IDIOMA] ?: &quot;es&quot; }
+&nbsp;    val telefonoFlow: Flow&lt;String&gt; = context.dataStore.data.map { it[KEY_TELEFONO] ?: &quot;+56 9 8765 4321&quot; }
+&nbsp;    val turnoFlow: Flow&lt;String&gt; = context.dataStore.data.map { it[KEY_TURNO] ?: &quot;Mañana (06:00 - 14:00)&quot; }
+&nbsp;
+&nbsp;    suspend fun saveSession(
+&nbsp;        token: String,
+&nbsp;        email: String,
+&nbsp;        nombre: String,
+&nbsp;        rol: String,
+&nbsp;        linceRecursoId: Int? = null,
+&nbsp;        oficinaCodigo: String? = null,
+&nbsp;        recursoId: String? = null
+&nbsp;    ) {
+&nbsp;        context.dataStore.edit { prefs -&gt;
+&nbsp;            prefs[KEY_TOKEN] = token
+&nbsp;            prefs[KEY_EMAIL] = email
+&nbsp;            prefs[KEY_NOMBRE] = nombre
+&nbsp;            prefs[KEY_ROL] = rol
+&nbsp;
+&nbsp;            if (linceRecursoId != null) {
+&nbsp;                prefs[KEY_LINCE_RECURSO_ID] = linceRecursoId
+&nbsp;            } else {
+&nbsp;                prefs.remove(KEY_LINCE_RECURSO_ID)
+&nbsp;            }
+&nbsp;
+&nbsp;            if (oficinaCodigo != null) {
+&nbsp;                prefs[KEY_OFICINA] = oficinaCodigo
+&nbsp;            } else {
+&nbsp;                prefs.remove(KEY_OFICINA)
+&nbsp;            }
+&nbsp;
+&nbsp;            val idFinal = recursoId ?: inferirRecursoPorEmail(email)
+&nbsp;            if (idFinal != null) {
+&nbsp;                prefs[KEY_RECURSO_ID] = idFinal
+&nbsp;            } else {
+&nbsp;                prefs.remove(KEY_RECURSO_ID)
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun actualizarPerfil(nombre: String, telefono: String, turno: String) {
+&nbsp;        context.dataStore.edit { prefs -&gt;
+&nbsp;            prefs[KEY_NOMBRE] = nombre
+&nbsp;            prefs[KEY_TELEFONO] = telefono
+&nbsp;            prefs[KEY_TURNO] = turno
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun inferirRecursoPorEmail(email: String?): String? {
+&nbsp;        return when (email?.lowercase()?.trim()) {
+&nbsp;            &quot;driver@southbound.cl&quot;, &quot;driver@lince.cl&quot;, &quot;driver01@demo.lince&quot; -&gt; &quot;TRP-01&quot;
+&nbsp;            &quot;guia@southbound.cl&quot;, &quot;guia@lince.cl&quot;, &quot;guia01@demo.lince&quot; -&gt; &quot;GUI-01&quot;
+&nbsp;            else -&gt; null
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun getBearerToken(): String? {
+&nbsp;        val token = tokenFlow.first()
+&nbsp;        return if (!token.isNullOrBlank()) &quot;Bearer $token&quot; else null
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun saveLanguage(langCode: String) {
+&nbsp;        context.dataStore.edit { it[KEY_IDIOMA] = langCode }
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun clearSession() {
+&nbsp;        context.dataStore.edit { prefs -&gt;
+&nbsp;            prefs.remove(KEY_TOKEN)
+&nbsp;            prefs.remove(KEY_EMAIL)
+&nbsp;            prefs.remove(KEY_NOMBRE)
+&nbsp;            prefs.remove(KEY_ROL)
+&nbsp;            prefs.remove(KEY_RECURSO_ID)
+&nbsp;            prefs.remove(KEY_LINCE_RECURSO_ID)
+&nbsp;            prefs.remove(KEY_OFICINA)
+&nbsp;            prefs.remove(KEY_TELEFONO)
+&nbsp;            prefs.remove(KEY_TURNO)
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

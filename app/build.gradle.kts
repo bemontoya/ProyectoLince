@@ -100,10 +100,10 @@ android {
 
 configurations.all {
     resolutionStrategy {
-        force("androidx.test.espresso:espresso-core:3.6.1")
-        force("androidx.test:runner:1.6.2")
-        force("androidx.test:rules:1.6.1")
-        force("androidx.test.ext:junit:1.2.1")
+        force("androidx.test.espresso:espresso-core:3.7.0-alpha01")
+        force("androidx.test:runner:1.7.0-alpha01")
+        force("androidx.test:rules:1.7.0-alpha01")
+        force("androidx.test.ext:junit:1.3.0-alpha01")
     }
 }
 
@@ -151,11 +151,11 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 
-    // Testing UI automatizado (Compose Test + Espresso compatible con Android 14/15)
+    // Testing UI automatizado (Compose Test + Espresso compatible con Android 15/16)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.7.5")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.5")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0-alpha01")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0-alpha01")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.7.8")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.8")
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

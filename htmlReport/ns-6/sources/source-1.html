@@ -1,0 +1,225 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LinceRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: LinceRepository (com.example.proyectolince.data.repository)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LinceRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    48,8%
+  </span>
+  <span class="absValue">
+    (20/41)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81,4%
+  </span>
+  <span class="absValue">
+    (35/43)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LinceRepository$obtenerDetalleServicio$1</td>
+  </tr>
+  <tr>
+    <td class="name">LinceRepository$obtenerServicios$1</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    48,8%
+  </span>
+  <span class="absValue">
+    (20/41)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81,4%
+  </span>
+  <span class="absValue">
+    (35/43)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.repository
+&nbsp;
+&nbsp;import com.example.proyectolince.data.network.LinceApiService
+&nbsp;import com.example.proyectolince.data.network.LinceRetrofitInstance
+&nbsp;import com.example.proyectolince.data.network.ServicioLinceDto
+&nbsp;import retrofit2.Response
+&nbsp;
+&nbsp;sealed class ResultadoApi&lt;out T&gt; {
+&nbsp;    data class Exito&lt;T&gt;(val datos: T) : ResultadoApi&lt;T&gt;()
+&nbsp;    data class Error(val mensaje: String, val requestId: String? = null, val codigoHttp: Int? = null) : ResultadoApi&lt;Nothing&gt;()
+&nbsp;}
+&nbsp;
+&nbsp;class LinceRepository(
+<b class="fc">&nbsp;    private val api: LinceApiService = LinceRetrofitInstance.api</b>
+&nbsp;) {
+&nbsp;    suspend fun obtenerServicios(
+<b class="fc">&nbsp;        page: Int = 1,</b>
+<b class="fc">&nbsp;        pageSize: Int = 50,</b>
+<b class="fc">&nbsp;        fecha: String? = null,</b>
+<b class="fc">&nbsp;        estado: String? = null,</b>
+<b class="fc">&nbsp;        tipo: String? = null</b>
+&nbsp;    ): ResultadoApi&lt;List&lt;ServicioLinceDto&gt;&gt; {
+&nbsp;        return try {
+<b class="fc">&nbsp;            val response = api.getServicios(</b>
+<b class="fc">&nbsp;                fechaDesde = fecha,</b>
+<b class="fc">&nbsp;                fechaHasta = fecha,</b>
+<b class="fc">&nbsp;                tipo = tipo,</b>
+<b class="fc">&nbsp;                estadoServicio = estado,</b>
+<b class="fc">&nbsp;                page = page,</b>
+<b class="fc">&nbsp;                pageSize = pageSize.coerceAtMost(100)</b>
+&nbsp;            )
+<b class="fc">&nbsp;            if (response.isSuccessful) {</b>
+<b class="pc">&nbsp;                val lista = response.body()?.data.orEmpty()</b>
+<b class="fc">&nbsp;                ResultadoApi.Exito(lista)</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                procesarErrorHttp(response)</b>
+&nbsp;            }
+&nbsp;        } catch (e: Exception) {
+<b class="pc">&nbsp;            ResultadoApi.Error(&quot;Error de conexión: ${e.localizedMessage ?: &quot;Sin internet&quot;}&quot;)</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun obtenerDetalleServicio(id: String): ResultadoApi&lt;ServicioLinceDto&gt; {
+&nbsp;        return try {
+<b class="pc">&nbsp;            val idNumerico = id.toIntOrNull()</b>
+<b class="fc">&nbsp;                ?: return ResultadoApi.Error(&quot;ID de servicio inválido: $id&quot;)</b>
+&nbsp;
+<b class="nc">&nbsp;            val response = api.getServicioById(idNumerico)</b>
+<b class="nc">&nbsp;            val servicio = response.body()?.data</b>
+<b class="nc">&nbsp;            if (response.isSuccessful &amp;&amp; servicio != null) {</b>
+<b class="nc">&nbsp;                ResultadoApi.Exito(servicio)</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                procesarErrorHttp(response)</b>
+&nbsp;            }
+&nbsp;        } catch (e: Exception) {
+<b class="nc">&nbsp;            ResultadoApi.Error(&quot;Error al cargar detalle: ${e.localizedMessage}&quot;)</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun validarAsignacionRecurso(servicio: ServicioLinceDto): Boolean {
+<b class="pc">&nbsp;        return when (servicio.tipo.uppercase()) {</b>
+<b class="pc">&nbsp;            &quot;TRANSFER&quot;, &quot;EXCURSION&quot; -&gt; servicio.transportista?.id != null</b>
+<b class="pc">&nbsp;            &quot;GUIDED_SERVICE&quot; -&gt; servicio.guia?.id != null</b>
+<b class="nc">&nbsp;            else -&gt; true</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun traducirEstado(codigoEstado: String): String {
+<b class="pc">&nbsp;        return when (codigoEstado.uppercase()) {</b>
+<b class="fc">&nbsp;            &quot;CF&quot; -&gt; &quot;CONFIRMADO&quot;</b>
+<b class="fc">&nbsp;            &quot;RQ&quot; -&gt; &quot;PENDIENTE&quot;</b>
+<b class="fc">&nbsp;            &quot;WL&quot; -&gt; &quot;LISTA DE ESPERA&quot;</b>
+<b class="fc">&nbsp;            &quot;XX&quot; -&gt; &quot;CANCELADO&quot;</b>
+<b class="nc">&nbsp;            else -&gt; codigoEstado</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun &lt;T&gt; procesarErrorHttp(response: Response&lt;T&gt;): ResultadoApi.Error {
+<b class="pc">&nbsp;        val errorBody = response.errorBody()?.string()</b>
+<b class="fc">&nbsp;        val reqId = response.headers()[&quot;x-request-id&quot;]</b>
+<b class="pc">&nbsp;        val msg = errorBody?.takeIf { it.isNotBlank() } ?: &quot;Error HTTP ${response.code()}&quot;</b>
+<b class="fc">&nbsp;        return ResultadoApi.Error(</b>
+<b class="pc">&nbsp;            mensaje = if (reqId != null) &quot;$msg (RequestID: $reqId)&quot; else msg,</b>
+<b class="fc">&nbsp;            requestId = reqId,</b>
+<b class="fc">&nbsp;            codigoHttp = response.code()</b>
+&nbsp;        )
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

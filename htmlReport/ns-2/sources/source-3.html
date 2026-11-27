@@ -1,0 +1,208 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuthRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data</a>
+</div>
+
+<h1>Coverage Summary for Class: AuthRepository (com.example.proyectolince.data)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AuthRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AuthRepository$cerrarSesion$1</td>
+  </tr>
+  <tr>
+    <td class="name">AuthRepository$iniciarSesion$1</td>
+  </tr>
+  <tr>
+    <td class="name">AuthRepository$WhenMappings</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data
+&nbsp;
+&nbsp;import com.example.proyectolince.data.network.InsForgeLoginRequest
+&nbsp;import com.example.proyectolince.data.network.InsForgeRetrofitInstance
+&nbsp;import com.example.proyectolince.ui.screens.Rol
+&nbsp;
+&nbsp;class AuthRepository(
+<b class="nc">&nbsp;    private val sessionManager: SessionManager? = null</b>
+&nbsp;) {
+&nbsp;
+&nbsp;    suspend fun iniciarSesion(correo: String, clave: String): Rol? {
+<b class="nc">&nbsp;        val response = InsForgeRetrofitInstance.api.login(</b>
+<b class="nc">&nbsp;            request = InsForgeLoginRequest(</b>
+<b class="nc">&nbsp;                email = correo.trim(),</b>
+<b class="nc">&nbsp;                password = clave</b>
+&nbsp;            )
+&nbsp;        )
+&nbsp;
+<b class="nc">&nbsp;        if (!response.isSuccessful || response.body() == null) {</b>
+<b class="nc">&nbsp;            throw Exception(&quot;Credenciales inválidas o error de servidor (${response.code()})&quot;)</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        val data = response.body()!!</b>
+<b class="nc">&nbsp;        val user = data.user</b>
+<b class="nc">&nbsp;        val meta = user.userMetadata</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;        val rolTexto = (meta?.rol ?: user.name ?: user.email.substringBefore(&quot;@&quot;))</b>
+<b class="nc">&nbsp;            .uppercase()</b>
+<b class="nc">&nbsp;            .trim()</b>
+&nbsp;
+<b class="nc">&nbsp;        val rolAsignado = when {</b>
+<b class="nc">&nbsp;            rolTexto.contains(&quot;COORD&quot;) -&gt; Rol.COORDINADOR</b>
+<b class="nc">&nbsp;            rolTexto.contains(&quot;GUIA&quot;) -&gt; Rol.GUIA</b>
+<b class="nc">&nbsp;            rolTexto.contains(&quot;DRIVER&quot;) || rolTexto.contains(&quot;TRANSP&quot;) -&gt; Rol.DRIVER</b>
+<b class="nc">&nbsp;            else -&gt; return null</b>
+&nbsp;        }
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;        val recursoId = meta?.recursoId?.takeIf { it.isNotBlank() } ?: when (rolAsignado) {</b>
+<b class="nc">&nbsp;            Rol.DRIVER -&gt; &quot;TRP-01&quot;</b>
+<b class="nc">&nbsp;            Rol.GUIA -&gt; &quot;GUI-01&quot;</b>
+<b class="nc">&nbsp;            Rol.COORDINADOR -&gt; null</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        val nombreMostrar = meta?.nombre</b>
+<b class="nc">&nbsp;            ?: user.name</b>
+<b class="nc">&nbsp;            ?: rolAsignado.etiqueta</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;        sessionManager?.saveSession(</b>
+<b class="nc">&nbsp;            token = data.accessToken,</b>
+<b class="nc">&nbsp;            email = user.email,</b>
+<b class="nc">&nbsp;            nombre = nombreMostrar,</b>
+<b class="nc">&nbsp;            rol = rolAsignado.name,</b>
+<b class="nc">&nbsp;            recursoId = recursoId</b>
+&nbsp;        )
+&nbsp;
+<b class="nc">&nbsp;        return rolAsignado</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun cerrarSesion() {
+&nbsp;        try {
+<b class="nc">&nbsp;            sessionManager?.clearSession()</b>
+&nbsp;        } catch (_: Exception) {
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

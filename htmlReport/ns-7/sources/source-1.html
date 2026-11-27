@@ -1,0 +1,265 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SyncOperacionesWorker</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.sync</a>
+</div>
+
+<h1>Coverage Summary for Class: SyncOperacionesWorker (com.example.proyectolince.data.sync)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SyncOperacionesWorker</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SyncOperacionesWorker$Companion</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">SyncOperacionesWorker$doWork$1</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/59)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.sync
+&nbsp;
+&nbsp;import android.content.Context
+&nbsp;import androidx.work.*
+&nbsp;import com.example.proyectolince.data.AppDatabase
+&nbsp;import com.example.proyectolince.data.SessionManager
+&nbsp;import com.example.proyectolince.data.network.BackendRetrofitInstance
+&nbsp;import com.example.proyectolince.data.network.CheckInOutBackendRequest
+&nbsp;import java.util.UUID
+&nbsp;import java.util.concurrent.TimeUnit
+&nbsp;
+&nbsp;class SyncOperacionesWorker(
+&nbsp;    context: Context,
+&nbsp;    workerParams: WorkerParameters
+<b class="nc">&nbsp;) : CoroutineWorker(context, workerParams) {</b>
+&nbsp;
+&nbsp;    override suspend fun doWork(): Result {
+<b class="nc">&nbsp;        val db = AppDatabase.getDatabase(applicationContext)</b>
+<b class="nc">&nbsp;        val dao = db.registroDao()</b>
+<b class="nc">&nbsp;        val sessionManager = SessionManager(applicationContext)</b>
+&nbsp;
+<b class="nc">&nbsp;        val bearerToken = sessionManager.getBearerToken() ?: return Result.retry()</b>
+<b class="nc">&nbsp;        val pendientes = dao.obtenerPendientesSincronizacion()</b>
+&nbsp;
+<b class="nc">&nbsp;        if (pendientes.isEmpty()) return Result.success()</b>
+&nbsp;
+<b class="nc">&nbsp;        var huboFalloRed = false</b>
+&nbsp;
+<b class="nc">&nbsp;        for (registro in pendientes) {</b>
+<b class="nc">&nbsp;            var checkInOk = true</b>
+<b class="nc">&nbsp;            var checkOutOk = true</b>
+&nbsp;
+&nbsp;            // Sincronizar Check-In si existe
+<b class="nc">&nbsp;            if (!registro.horaCheckIn.isNullOrBlank()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    val reqCheckIn = CheckInOutBackendRequest(</b>
+<b class="nc">&nbsp;                        idempotencyKey = registro.idempotencyKeyCheckIn</b>
+<b class="nc">&nbsp;                            ?: &quot;CI-${registro.codigoServicio}-${UUID.randomUUID()}&quot;,</b>
+<b class="nc">&nbsp;                        servicioId = registro.codigoServicio,</b>
+<b class="nc">&nbsp;                        tipoEvento = &quot;CHECK_IN&quot;,</b>
+<b class="nc">&nbsp;                        latitud = registro.latitudCheckIn ?: 0.0,</b>
+<b class="nc">&nbsp;                        longitud = registro.longitudCheckIn ?: 0.0,</b>
+<b class="nc">&nbsp;                        precisionGpsMetros = registro.precisionCheckIn ?: 10f,</b>
+<b class="nc">&nbsp;                        nombreLugar = registro.nombreLugarOrigen ?: &quot;Punto de origen&quot;,</b>
+<b class="nc">&nbsp;                        horaPickupProgramada = registro.horaPickupProgramada</b>
+&nbsp;                    )
+<b class="nc">&nbsp;                    val resp = BackendRetrofitInstance.api.registrarCheckInOut(bearerToken, reqCheckIn)</b>
+<b class="nc">&nbsp;                    if (!resp.isSuccessful) {</b>
+<b class="nc">&nbsp;                        checkInOk = false</b>
+&nbsp;                    }
+&nbsp;                } catch (_: Exception) {
+<b class="nc">&nbsp;                    checkInOk = false</b>
+<b class="nc">&nbsp;                    huboFalloRed = true</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            // Sincronizar Check-Out si existe
+<b class="nc">&nbsp;            if (!registro.horaCheckOut.isNullOrBlank()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    val reqCheckOut = CheckInOutBackendRequest(</b>
+<b class="nc">&nbsp;                        idempotencyKey = registro.idempotencyKeyCheckOut</b>
+<b class="nc">&nbsp;                            ?: &quot;CO-${registro.codigoServicio}-${UUID.randomUUID()}&quot;,</b>
+<b class="nc">&nbsp;                        servicioId = registro.codigoServicio,</b>
+<b class="nc">&nbsp;                        tipoEvento = &quot;CHECK_OUT&quot;,</b>
+<b class="nc">&nbsp;                        latitud = registro.latitudCheckOut ?: 0.0,</b>
+<b class="nc">&nbsp;                        longitud = registro.longitudCheckOut ?: 0.0,</b>
+<b class="nc">&nbsp;                        precisionGpsMetros = registro.precisionCheckOut ?: 10f,</b>
+<b class="nc">&nbsp;                        nombreLugar = registro.nombreLugarDestino ?: &quot;Punto de destino&quot;</b>
+&nbsp;                    )
+<b class="nc">&nbsp;                    val resp = BackendRetrofitInstance.api.registrarCheckInOut(bearerToken, reqCheckOut)</b>
+<b class="nc">&nbsp;                    if (!resp.isSuccessful) {</b>
+<b class="nc">&nbsp;                        checkOutOk = false</b>
+&nbsp;                    }
+&nbsp;                } catch (_: Exception) {
+<b class="nc">&nbsp;                    checkOutOk = false</b>
+<b class="nc">&nbsp;                    huboFalloRed = true</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (checkInOk &amp;&amp; checkOutOk) {</b>
+<b class="nc">&nbsp;                dao.marcarComoSincronizado(registro.id)</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return if (huboFalloRed) Result.retry() else Result.success()</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    companion object {
+&nbsp;        private const val WORK_NAME = &quot;sync_operaciones_lince&quot;
+&nbsp;
+&nbsp;        fun encolarSincronizacion(context: Context) {
+<b class="nc">&nbsp;            val constraints = Constraints.Builder()</b>
+<b class="nc">&nbsp;                .setRequiredNetworkType(NetworkType.CONNECTED)</b>
+<b class="nc">&nbsp;                .build()</b>
+&nbsp;
+<b class="nc">&nbsp;            val request = OneTimeWorkRequestBuilder&lt;SyncOperacionesWorker&gt;()</b>
+<b class="nc">&nbsp;                .setConstraints(constraints)</b>
+<b class="nc">&nbsp;                .setBackoffCriteria(</b>
+<b class="nc">&nbsp;                    BackoffPolicy.EXPONENTIAL,</b>
+<b class="nc">&nbsp;                    15,</b>
+<b class="nc">&nbsp;                    TimeUnit.SECONDS</b>
+&nbsp;                )
+<b class="nc">&nbsp;                .build()</b>
+&nbsp;
+<b class="nc">&nbsp;            WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(</b>
+<b class="nc">&nbsp;                WORK_NAME,</b>
+<b class="nc">&nbsp;                ExistingWorkPolicy.APPEND_OR_REPLACE,</b>
+<b class="nc">&nbsp;                request</b>
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

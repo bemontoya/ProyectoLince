@@ -1,0 +1,254 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ResumenLinceDto</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.network</a>
+</div>
+
+<h1>Coverage Summary for Class: ResumenLinceDto (com.example.proyectolince.data.network)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ResumenLinceDto</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.network
+&nbsp;
+&nbsp;import com.google.gson.annotations.SerializedName
+&nbsp;
+&nbsp;
+&nbsp;data class PaginatedResponse&lt;T&gt;(
+&nbsp;    val data: List&lt;T&gt;,
+&nbsp;    val meta: PaginationMeta
+&nbsp;)
+&nbsp;
+&nbsp;data class SingleResponse&lt;T&gt;(
+&nbsp;    val data: T
+&nbsp;)
+&nbsp;
+&nbsp;data class PaginationMeta(
+&nbsp;    val page: Int,
+&nbsp;    val pageSize: Int,
+&nbsp;    val total: Int,
+&nbsp;    val totalPages: Int
+&nbsp;)
+&nbsp;
+&nbsp;// Modelo de Servicio
+&nbsp;data class ServicioLinceDto(
+&nbsp;    val id: Int,
+&nbsp;    val codigo: String,
+&nbsp;    val srv: String,
+&nbsp;    val tipo: String, // TRANSFER, EXCURSION, GUIDED_SERVICE
+&nbsp;    val fecha: String, // YYYY-MM-DD
+&nbsp;    val horaPickup: String, // HH:mm (America/Santiago)
+&nbsp;    val descripcion: String,
+&nbsp;    val descripcionPadre: String?,
+&nbsp;    val estadoServicio: String, // CF, RQ, WL, XX
+&nbsp;    val reserva: ReservaDto?,
+&nbsp;    val pax: PaxDto?,
+&nbsp;    val pickup: String?,
+&nbsp;    val dropoff: String?,
+&nbsp;    val notas: String?,
+&nbsp;    val oficina: OficinaDto?,
+&nbsp;    val cliente: ClienteResumenDto?,
+&nbsp;    val idiomaRequerido: IdiomaDto?,
+&nbsp;    val guia: RecursoResumenDto?,
+&nbsp;    val transportista: RecursoResumenDto?,
+&nbsp;    val vehiculo: VehiculoDto?,
+&nbsp;    val asignacion: AsignacionDto?
+&nbsp;)
+&nbsp;
+&nbsp;data class ReservaDto(
+&nbsp;    val referencia: String?,
+&nbsp;    val nombre: String?,
+&nbsp;    val estado: String?
+&nbsp;)
+&nbsp;
+&nbsp;data class PaxDto(
+&nbsp;    val adultos: Int,
+&nbsp;    val ninos: Int,
+&nbsp;    val total: Int,
+&nbsp;    val texto: String?
+&nbsp;)
+&nbsp;
+&nbsp;data class OficinaDto(
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String
+&nbsp;)
+&nbsp;
+&nbsp;data class ClienteResumenDto(
+&nbsp;    val id: Int,
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String,
+&nbsp;    val pais: String?
+&nbsp;)
+&nbsp;
+&nbsp;data class IdiomaDto(
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String
+&nbsp;)
+&nbsp;
+&nbsp;data class RecursoResumenDto(
+&nbsp;    val id: Int,
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String
+&nbsp;)
+&nbsp;
+&nbsp;data class VehiculoDto(
+&nbsp;    val id: Int,
+&nbsp;    val patente: String,
+&nbsp;    val tipo: String,
+&nbsp;    val capacidad: Int
+&nbsp;)
+&nbsp;
+&nbsp;data class AsignacionDto(
+&nbsp;    val statusPL: String?,
+&nbsp;    val actualizadoEn: String?
+&nbsp;)
+&nbsp;
+&nbsp;
+&nbsp;data class GuiaLinceDto(
+&nbsp;    val id: Int,
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String,
+&nbsp;    val oficina: OficinaDto?,
+&nbsp;    val idiomas: List&lt;IdiomaDto&gt;?,
+&nbsp;    val activo: Boolean?
+&nbsp;)
+&nbsp;
+&nbsp;data class TransportistaLinceDto(
+&nbsp;    val id: Int,
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String,
+&nbsp;    val oficina: OficinaDto?,
+&nbsp;    val activo: Boolean?
+&nbsp;)
+&nbsp;
+&nbsp;data class ClienteLinceDto(
+&nbsp;    val id: Int,
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String,
+&nbsp;    val pais: String?
+&nbsp;)
+&nbsp;
+&nbsp;
+&nbsp;data class CatalogosLinceDto(
+&nbsp;    val oficinas: List&lt;OficinaDto&gt;?,
+&nbsp;    val tiposServicio: List&lt;CatalogoItemDto&gt;?,
+&nbsp;    val estadosServicio: List&lt;CatalogoItemDto&gt;?,
+&nbsp;    val idiomas: List&lt;IdiomaDto&gt;?
+&nbsp;)
+&nbsp;
+&nbsp;data class CatalogoItemDto(
+&nbsp;    val codigo: String,
+&nbsp;    val nombre: String? = null,
+&nbsp;    val descripcion: String? = null
+&nbsp;)
+&nbsp;
+<b class="nc">&nbsp;data class ResumenLinceDto(</b>
+<b class="nc">&nbsp;    val totalServicios: Int?,</b>
+<b class="nc">&nbsp;    val porEstado: Map&lt;String, Int&gt;?,</b>
+<b class="nc">&nbsp;    val porTipo: Map&lt;String, Int&gt;?,</b>
+<b class="nc">&nbsp;    val porOficina: Map&lt;String, Int&gt;?</b>
+&nbsp;)
+&nbsp;
+&nbsp;
+&nbsp;data class LinceErrorResponse(
+&nbsp;    val error: LinceErrorDetail?
+&nbsp;)
+&nbsp;
+&nbsp;data class LinceErrorDetail(
+&nbsp;    val code: String?,
+&nbsp;    val message: String?,
+&nbsp;    val requestId: String?
+&nbsp;)
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,171 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SessionManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.southbound.proyectolince.data.local</a>
+</div>
+
+<h1>Coverage Summary for Class: SessionManager (com.southbound.proyectolince.data.local)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SessionManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.southbound.proyectolince.data.local
+&nbsp;
+&nbsp;import android.content.Context
+&nbsp;import android.content.SharedPreferences
+&nbsp;
+<b class="nc">&nbsp;class SessionManager(context: Context) {</b>
+&nbsp;
+&nbsp;    private val prefs: SharedPreferences =
+<b class="nc">&nbsp;        context.getSharedPreferences(&quot;lince_session_prefs&quot;, Context.MODE_PRIVATE)</b>
+&nbsp;
+&nbsp;    fun saveSession(
+&nbsp;        token: String,
+&nbsp;        email: String,
+&nbsp;        nombre: String,
+&nbsp;        rol: String,
+&nbsp;        linceRecursoId: Int?,
+&nbsp;        oficinaCodigo: String?
+&nbsp;    ) {
+<b class="nc">&nbsp;        prefs.edit().apply {</b>
+<b class="nc">&nbsp;            putString(&quot;jwt_token&quot;, token)</b>
+<b class="nc">&nbsp;            putString(&quot;user_email&quot;, email)</b>
+<b class="nc">&nbsp;            putString(&quot;user_nombre&quot;, nombre)</b>
+<b class="nc">&nbsp;            putString(&quot;user_rol&quot;, rol)</b>
+<b class="nc">&nbsp;            if (linceRecursoId != null) putInt(&quot;lince_recurso_id&quot;, linceRecursoId)</b>
+<b class="nc">&nbsp;            else remove(&quot;lince_recurso_id&quot;)</b>
+<b class="nc">&nbsp;            putString(&quot;oficina_codigo&quot;, oficinaCodigo)</b>
+<b class="nc">&nbsp;            apply()</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    fun getToken(): String? = prefs.getString(&quot;jwt_token&quot;, null)</b>
+<b class="nc">&nbsp;    fun getBearerToken(): String? = getToken()?.let { &quot;Bearer $it&quot; }</b>
+<b class="nc">&nbsp;    fun getRol(): String? = prefs.getString(&quot;user_rol&quot;, null)</b>
+<b class="nc">&nbsp;    fun getNombre(): String? = prefs.getString(&quot;user_nombre&quot;, null)</b>
+<b class="nc">&nbsp;    fun getEmail(): String? = prefs.getString(&quot;user_email&quot;, null)</b>
+<b class="nc">&nbsp;    fun getTelefono(): String = prefs.getString(&quot;user_telefono&quot;, null) ?: &quot;+56 9 8765 4321&quot;</b>
+<b class="nc">&nbsp;    fun getTurno(): String = prefs.getString(&quot;user_turno&quot;, null) ?: &quot;Mañana (06:00 - 14:00)&quot;</b>
+&nbsp;    fun getLinceRecursoId(): Int? =
+<b class="nc">&nbsp;        if (prefs.contains(&quot;lince_recurso_id&quot;)) prefs.getInt(&quot;lince_recurso_id&quot;, -1) else null</b>
+&nbsp;
+&nbsp;    fun actualizarPerfil(nombre: String, telefono: String, turno: String) {
+<b class="nc">&nbsp;        prefs.edit().apply {</b>
+<b class="nc">&nbsp;            putString(&quot;user_nombre&quot;, nombre)</b>
+<b class="nc">&nbsp;            putString(&quot;user_telefono&quot;, telefono)</b>
+<b class="nc">&nbsp;            putString(&quot;user_turno&quot;, turno)</b>
+<b class="nc">&nbsp;            apply()</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    fun isLoggedIn(): Boolean = !getToken().isNullOrBlank()</b>
+&nbsp;
+&nbsp;    fun clearSession() {
+<b class="nc">&nbsp;        prefs.edit().clear().apply()</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,473 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Rol</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.ui.screens</a>
+</div>
+
+<h1>Coverage Summary for Class: Rol (com.example.proyectolince.ui.screens)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Rol</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.ui.screens
+&nbsp;
+&nbsp;import androidx.annotation.StringRes
+&nbsp;import androidx.compose.foundation.Image
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.clickable
+&nbsp;import androidx.compose.foundation.layout.*
+&nbsp;import androidx.compose.foundation.rememberScrollState
+&nbsp;import androidx.compose.foundation.shape.CircleShape
+&nbsp;import androidx.compose.foundation.shape.RoundedCornerShape
+&nbsp;import androidx.compose.foundation.text.KeyboardOptions
+&nbsp;import androidx.compose.foundation.verticalScroll
+&nbsp;import androidx.compose.material.icons.Icons
+&nbsp;import androidx.compose.material.icons.automirrored.filled.ArrowForward
+&nbsp;import androidx.compose.material.icons.filled.*
+&nbsp;import androidx.compose.material3.*
+&nbsp;import androidx.compose.runtime.*
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import androidx.compose.ui.graphics.Color
+&nbsp;import androidx.compose.ui.graphics.vector.ImageVector
+&nbsp;import androidx.compose.ui.res.painterResource
+&nbsp;import androidx.compose.ui.res.stringResource
+&nbsp;import androidx.compose.ui.text.font.FontWeight
+&nbsp;import androidx.compose.ui.text.input.KeyboardType
+&nbsp;import androidx.compose.ui.text.input.PasswordVisualTransformation
+&nbsp;import androidx.compose.ui.text.input.VisualTransformation
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import androidx.compose.ui.unit.sp
+&nbsp;import androidx.lifecycle.viewmodel.compose.viewModel
+&nbsp;import com.example.proyectolince.R
+&nbsp;import com.example.proyectolince.ui.theme.*
+&nbsp;import com.example.proyectolince.ui.viewmodel.LoginViewModel
+&nbsp;
+<b class="fc">&nbsp;enum class Rol(val etiqueta: String, @StringRes val etiquetaRes: Int, val icono: ImageVector) {</b>
+<b class="fc">&nbsp;    DRIVER(&quot;Driver&quot;, R.string.rol_driver, Icons.Default.DirectionsCar),</b>
+<b class="fc">&nbsp;    GUIA(&quot;Guía&quot;, R.string.rol_guia, Icons.Default.Explore),</b>
+<b class="fc">&nbsp;    COORDINADOR(&quot;Coordinador&quot;, R.string.rol_coordinador, Icons.Default.Hub)</b>
+&nbsp;}
+&nbsp;
+&nbsp;@OptIn(ExperimentalMaterial3Api::class)
+&nbsp;@Composable
+&nbsp;fun LoginScreen(
+&nbsp;    viewModel: LoginViewModel = viewModel(),
+&nbsp;    idiomaActual: String = &quot;es&quot;,
+&nbsp;    onCambiarIdioma: (String) -&gt; Unit = {},
+&nbsp;    onLoginSuccess: (Rol) -&gt; Unit = {}
+&nbsp;) {
+&nbsp;    val uiState by viewModel.uiState.collectAsState()
+&nbsp;    val scrollState = rememberScrollState()
+&nbsp;
+&nbsp;    LaunchedEffect(uiState.isSuccess) {
+&nbsp;        if (uiState.isSuccess) {
+&nbsp;            onLoginSuccess(uiState.rolSeleccionado)
+&nbsp;            viewModel.resetSuccessState()
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    Scaffold(
+&nbsp;        containerColor = FondoPantalla,
+&nbsp;        modifier = Modifier.imePadding()
+&nbsp;    ) { paddingValores -&gt;
+&nbsp;        Box(
+&nbsp;            modifier = Modifier
+&nbsp;                .fillMaxSize()
+&nbsp;                .padding(paddingValores)
+&nbsp;        ) {
+&nbsp;            Column(
+&nbsp;                modifier = Modifier
+&nbsp;                    .fillMaxSize()
+&nbsp;                    .verticalScroll(scrollState)
+&nbsp;                    .padding(horizontal = 24.dp, vertical = 16.dp),
+&nbsp;                horizontalAlignment = Alignment.CenterHorizontally,
+&nbsp;                verticalArrangement = Arrangement.Top
+&nbsp;            ) {
+&nbsp;                // Barra superior con selector compacto de idioma ES | EN
+&nbsp;                Row(
+&nbsp;                    modifier = Modifier.fillMaxWidth(),
+&nbsp;                    horizontalArrangement = Arrangement.End,
+&nbsp;                    verticalAlignment = Alignment.CenterVertically
+&nbsp;                ) {
+&nbsp;                    SelectorIdiomaCompacto(
+&nbsp;                        idiomaActual = idiomaActual,
+&nbsp;                        onCambiarIdioma = onCambiarIdioma
+&nbsp;                    )
+&nbsp;                }
+&nbsp;
+&nbsp;                Spacer(modifier = Modifier.height(8.dp))
+&nbsp;
+&nbsp;                // Logo y Encabezado
+&nbsp;                Image(
+&nbsp;                    painter = painterResource(id = R.drawable.logo_lince),
+&nbsp;                    contentDescription = &quot;Logo Southbound Field&quot;,
+&nbsp;                    modifier = Modifier
+&nbsp;                        .size(64.dp)
+&nbsp;                        .clip(RoundedCornerShape(16.dp))
+&nbsp;                )
+&nbsp;                Spacer(modifier = Modifier.height(12.dp))
+&nbsp;                Text(
+&nbsp;                    text = stringResource(R.string.subtitulo_app),
+&nbsp;                    fontSize = 24.sp,
+&nbsp;                    fontWeight = FontWeight.Bold,
+&nbsp;                    color = TextoOscuro
+&nbsp;                )
+&nbsp;                Spacer(modifier = Modifier.height(4.dp))
+&nbsp;                Row(verticalAlignment = Alignment.CenterVertically) {
+&nbsp;                    Box(
+&nbsp;                        modifier = Modifier
+&nbsp;                            .size(8.dp)
+&nbsp;                            .background(VerdeConfirmado, CircleShape)
+&nbsp;                    )
+&nbsp;                    Spacer(modifier = Modifier.width(6.dp))
+&nbsp;                    Text(
+&nbsp;                        text = stringResource(R.string.login_subtitulo),
+&nbsp;                        fontSize = 13.sp,
+&nbsp;                        color = TextoGris,
+&nbsp;                        fontWeight = FontWeight.Medium
+&nbsp;                    )
+&nbsp;                }
+&nbsp;
+&nbsp;                Spacer(modifier = Modifier.height(24.dp))
+&nbsp;
+&nbsp;                // Selector de Rol
+&nbsp;                Surface(
+&nbsp;                    color = Color(0xFFE2E8F0).copy(alpha = 0.6f),
+&nbsp;                    shape = RoundedCornerShape(12.dp),
+&nbsp;                    modifier = Modifier.fillMaxWidth()
+&nbsp;                ) {
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.padding(4.dp),
+&nbsp;                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+&nbsp;                    ) {
+&nbsp;                        Rol.entries.forEach { rol -&gt;
+&nbsp;                            RolTab(
+&nbsp;                                rol = rol,
+&nbsp;                                seleccionado = uiState.rolSeleccionado == rol,
+&nbsp;                                onClick = { viewModel.onRolSelected(rol) }
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                Spacer(modifier = Modifier.height(16.dp))
+&nbsp;
+&nbsp;                // Campo Correo
+&nbsp;                Column(modifier = Modifier.fillMaxWidth()) {
+&nbsp;                    Text(
+&nbsp;                        text = stringResource(R.string.login_correo),
+&nbsp;                        fontSize = 11.sp,
+&nbsp;                        fontWeight = FontWeight.Bold,
+&nbsp;                        color = TextoGris,
+&nbsp;                        modifier = Modifier.padding(bottom = 6.dp)
+&nbsp;                    )
+&nbsp;                    OutlinedTextField(
+&nbsp;                        value = uiState.correo,
+&nbsp;                        onValueChange = { viewModel.onCorreoChanged(it) },
+&nbsp;                        modifier = Modifier.fillMaxWidth(),
+&nbsp;                        shape = RoundedCornerShape(12.dp),
+&nbsp;                        placeholder = { Text(&quot;driver01@demo.lince&quot;, color = TextoGris) },
+&nbsp;                        leadingIcon = {
+&nbsp;                            Icon(Icons.Default.AlternateEmail, contentDescription = null, tint = TextoGris)
+&nbsp;                        },
+&nbsp;                        isError = uiState.mensajeError != null,
+&nbsp;                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+&nbsp;                        colors = OutlinedTextFieldDefaults.colors(
+&nbsp;                            focusedContainerColor = Color.White,
+&nbsp;                            unfocusedContainerColor = Color.White,
+&nbsp;                            focusedBorderColor = AzulPrincipal,
+&nbsp;                            unfocusedBorderColor = Color(0xFFE2E8F0)
+&nbsp;                        ),
+&nbsp;                        singleLine = true
+&nbsp;                    )
+&nbsp;                }
+&nbsp;
+&nbsp;                Spacer(modifier = Modifier.height(14.dp))
+&nbsp;
+&nbsp;                // Campo Contraseña
+&nbsp;                Column(modifier = Modifier.fillMaxWidth()) {
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.fillMaxWidth(),
+&nbsp;                        horizontalArrangement = Arrangement.SpaceBetween,
+&nbsp;                        verticalAlignment = Alignment.CenterVertically
+&nbsp;                    ) {
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.login_password),
+&nbsp;                            fontSize = 11.sp,
+&nbsp;                            fontWeight = FontWeight.Bold,
+&nbsp;                            color = TextoGris
+&nbsp;                        )
+&nbsp;                        TextButton(
+&nbsp;                            onClick = { },
+&nbsp;                            contentPadding = PaddingValues(0.dp)
+&nbsp;                        ) {
+&nbsp;                            Text(
+&nbsp;                                text = stringResource(R.string.login_olvido),
+&nbsp;                                fontSize = 12.sp,
+&nbsp;                                fontWeight = FontWeight.Bold,
+&nbsp;                                color = AzulPrincipal
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                    OutlinedTextField(
+&nbsp;                        value = uiState.clave,
+&nbsp;                        onValueChange = { viewModel.onClaveChanged(it) },
+&nbsp;                        modifier = Modifier.fillMaxWidth(),
+&nbsp;                        shape = RoundedCornerShape(12.dp),
+&nbsp;                        leadingIcon = {
+&nbsp;                            Icon(Icons.Default.Lock, contentDescription = null, tint = TextoGris)
+&nbsp;                        },
+&nbsp;                        trailingIcon = {
+&nbsp;                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+&nbsp;                                Icon(
+&nbsp;                                    imageVector = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+&nbsp;                                    contentDescription = null,
+&nbsp;                                    tint = TextoGris
+&nbsp;                                )
+&nbsp;                            }
+&nbsp;                        },
+&nbsp;                        visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+&nbsp;                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+&nbsp;                        isError = uiState.mensajeError != null,
+&nbsp;                        colors = OutlinedTextFieldDefaults.colors(
+&nbsp;                            focusedContainerColor = Color.White,
+&nbsp;                            unfocusedContainerColor = Color.White,
+&nbsp;                            focusedBorderColor = AzulPrincipal,
+&nbsp;                            unfocusedBorderColor = Color(0xFFE2E8F0)
+&nbsp;                        ),
+&nbsp;                        singleLine = true
+&nbsp;                    )
+&nbsp;                }
+&nbsp;
+&nbsp;                // Mensaje de Error
+&nbsp;                uiState.mensajeError?.let { texto -&gt;
+&nbsp;                    Spacer(modifier = Modifier.height(8.dp))
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.fillMaxWidth(),
+&nbsp;                        verticalAlignment = Alignment.CenterVertically
+&nbsp;                    ) {
+&nbsp;                        Icon(
+&nbsp;                            Icons.Default.ErrorOutline,
+&nbsp;                            contentDescription = null,
+&nbsp;                            tint = MaterialTheme.colorScheme.error,
+&nbsp;                            modifier = Modifier.size(16.dp)
+&nbsp;                        )
+&nbsp;                        Spacer(modifier = Modifier.width(6.dp))
+&nbsp;                        Text(
+&nbsp;                            text = texto,
+&nbsp;                            fontSize = 12.sp,
+&nbsp;                            color = MaterialTheme.colorScheme.error
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                Spacer(modifier = Modifier.weight(1f, fill = false))
+&nbsp;                Spacer(modifier = Modifier.height(32.dp))
+&nbsp;
+&nbsp;                // Botón Iniciar Sesión
+&nbsp;                Button(
+&nbsp;                    onClick = { viewModel.iniciarSesion() },
+&nbsp;                    enabled = !uiState.isLoading,
+&nbsp;                    shape = RoundedCornerShape(12.dp),
+&nbsp;                    contentPadding = PaddingValues(0.dp),
+&nbsp;                    colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
+&nbsp;                    modifier = Modifier
+&nbsp;                        .fillMaxWidth()
+&nbsp;                        .height(52.dp)
+&nbsp;                ) {
+&nbsp;                    if (uiState.isLoading) {
+&nbsp;                        CircularProgressIndicator(
+&nbsp;                            modifier = Modifier.size(22.dp),
+&nbsp;                            color = Color.White,
+&nbsp;                            strokeWidth = 2.dp
+&nbsp;                        )
+&nbsp;                    } else {
+&nbsp;                        Text(
+&nbsp;                            text = stringResource(R.string.login_btn),
+&nbsp;                            fontSize = 15.sp,
+&nbsp;                            fontWeight = FontWeight.Bold,
+&nbsp;                            color = Color.White
+&nbsp;                        )
+&nbsp;                        Spacer(modifier = Modifier.width(8.dp))
+&nbsp;                        Icon(
+&nbsp;                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+&nbsp;                            contentDescription = null,
+&nbsp;                            tint = Color.White,
+&nbsp;                            modifier = Modifier.size(18.dp)
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun SelectorIdiomaCompacto(
+&nbsp;    idiomaActual: String,
+&nbsp;    onCambiarIdioma: (String) -&gt; Unit
+&nbsp;) {
+&nbsp;    Surface(
+&nbsp;        color = Color.White,
+&nbsp;        shape = RoundedCornerShape(20.dp),
+&nbsp;        shadowElevation = 1.dp
+&nbsp;    ) {
+&nbsp;        Row(
+&nbsp;            modifier = Modifier.padding(4.dp),
+&nbsp;            verticalAlignment = Alignment.CenterVertically,
+&nbsp;            horizontalArrangement = Arrangement.spacedBy(2.dp)
+&nbsp;        ) {
+&nbsp;            Icon(
+&nbsp;                imageVector = Icons.Default.Language,
+&nbsp;                contentDescription = null,
+&nbsp;                tint = AzulPrincipal,
+&nbsp;                modifier = Modifier
+&nbsp;                    .padding(start = 6.dp, end = 2.dp)
+&nbsp;                    .size(15.dp)
+&nbsp;            )
+&nbsp;            listOf(&quot;es&quot; to &quot;ES&quot;, &quot;en&quot; to &quot;EN&quot;).forEach { (codigo, etiqueta) -&gt;
+&nbsp;                val activo = idiomaActual.equals(codigo, ignoreCase = true)
+&nbsp;                Surface(
+&nbsp;                    color = if (activo) AzulPrincipal else Color.Transparent,
+&nbsp;                    shape = RoundedCornerShape(14.dp),
+&nbsp;                    modifier = Modifier
+&nbsp;                        .clip(RoundedCornerShape(14.dp))
+&nbsp;                        .clickable { onCambiarIdioma(codigo) }
+&nbsp;                ) {
+&nbsp;                    Text(
+&nbsp;                        text = etiqueta,
+&nbsp;                        fontSize = 11.sp,
+&nbsp;                        fontWeight = FontWeight.Bold,
+&nbsp;                        color = if (activo) Color.White else TextoGris,
+&nbsp;                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun RowScope.RolTab(
+&nbsp;    rol: Rol,
+&nbsp;    seleccionado: Boolean,
+&nbsp;    onClick: () -&gt; Unit
+&nbsp;) {
+&nbsp;    Button(
+&nbsp;        onClick = onClick,
+&nbsp;        shape = RoundedCornerShape(10.dp),
+&nbsp;        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+&nbsp;        colors = ButtonDefaults.buttonColors(
+&nbsp;            containerColor = if (seleccionado) Color.White else Color.Transparent,
+&nbsp;            contentColor = if (seleccionado) TextoOscuro else TextoGris
+&nbsp;        ),
+&nbsp;        elevation = if (seleccionado) ButtonDefaults.buttonElevation(defaultElevation = 2.dp) else null,
+&nbsp;        modifier = Modifier
+&nbsp;            .weight(1f)
+&nbsp;            .height(40.dp)
+&nbsp;    ) {
+&nbsp;        Icon(rol.icono, contentDescription = null, modifier = Modifier.size(16.dp))
+&nbsp;        Spacer(modifier = Modifier.width(4.dp))
+&nbsp;        Text(
+&nbsp;            text = stringResource(rol.etiquetaRes),
+&nbsp;            fontSize = 12.sp,
+&nbsp;            fontWeight = FontWeight.Bold,
+&nbsp;            maxLines = 1
+&nbsp;        )
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

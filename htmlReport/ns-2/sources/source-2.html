@@ -1,0 +1,343 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AppDatabase_Impl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data</a>
+</div>
+
+<h1>Coverage Summary for Class: AppDatabase_Impl (com.example.proyectolince.data)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AppDatabase_Impl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AppDatabase_Impl$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/78)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data;
+&nbsp;
+&nbsp;import androidx.annotation.NonNull;
+&nbsp;import androidx.room.DatabaseConfiguration;
+&nbsp;import androidx.room.InvalidationTracker;
+&nbsp;import androidx.room.RoomDatabase;
+&nbsp;import androidx.room.RoomOpenHelper;
+&nbsp;import androidx.room.migration.AutoMigrationSpec;
+&nbsp;import androidx.room.migration.Migration;
+&nbsp;import androidx.room.util.DBUtil;
+&nbsp;import androidx.room.util.TableInfo;
+&nbsp;import androidx.sqlite.db.SupportSQLiteDatabase;
+&nbsp;import androidx.sqlite.db.SupportSQLiteOpenHelper;
+&nbsp;import java.lang.Class;
+&nbsp;import java.lang.Override;
+&nbsp;import java.lang.String;
+&nbsp;import java.lang.SuppressWarnings;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import javax.annotation.processing.Generated;
+&nbsp;
+&nbsp;@Generated(&quot;androidx.room.RoomProcessor&quot;)
+&nbsp;@SuppressWarnings({&quot;unchecked&quot;, &quot;deprecation&quot;})
+<b class="nc">&nbsp;public final class AppDatabase_Impl extends AppDatabase {</b>
+&nbsp;  private volatile RegistroDao _registroDao;
+&nbsp;
+&nbsp;  @Override
+&nbsp;  @NonNull
+&nbsp;  protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
+<b class="nc">&nbsp;    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {</b>
+&nbsp;      @Override
+&nbsp;      public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;        db.execSQL(&quot;CREATE TABLE IF NOT EXISTS `registros_operacionales` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `codigoServicio` TEXT NOT NULL, `horaCheckIn` TEXT, `horaCheckOut` TEXT, `observaciones` TEXT, `fechaRegistro` INTEGER NOT NULL, `sincronizado` INTEGER NOT NULL, `latitudCheckIn` REAL, `longitudCheckIn` REAL, `precisionCheckIn` REAL, `nombreLugarOrigen` TEXT, `horaPickupProgramada` TEXT, `idempotencyKeyCheckIn` TEXT, `latitudCheckOut` REAL, `longitudCheckOut` REAL, `precisionCheckOut` REAL, `nombreLugarDestino` TEXT, `idempotencyKeyCheckOut` TEXT)&quot;);</b>
+<b class="nc">&nbsp;        db.execSQL(&quot;CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)&quot;);</b>
+<b class="nc">&nbsp;        db.execSQL(&quot;INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, &#39;d1c86e1d9f0b90d2ee59ea5ea9b2b2c5&#39;)&quot;);</b>
+&nbsp;      }
+&nbsp;
+&nbsp;      @Override
+&nbsp;      public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;        db.execSQL(&quot;DROP TABLE IF EXISTS `registros_operacionales`&quot;);</b>
+<b class="nc">&nbsp;        final List&lt;? extends RoomDatabase.Callback&gt; _callbacks = mCallbacks;</b>
+<b class="nc">&nbsp;        if (_callbacks != null) {</b>
+<b class="nc">&nbsp;          for (RoomDatabase.Callback _callback : _callbacks) {</b>
+<b class="nc">&nbsp;            _callback.onDestructiveMigration(db);</b>
+&nbsp;          }
+&nbsp;        }
+&nbsp;      }
+&nbsp;
+&nbsp;      @Override
+&nbsp;      public void onCreate(@NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;        final List&lt;? extends RoomDatabase.Callback&gt; _callbacks = mCallbacks;</b>
+<b class="nc">&nbsp;        if (_callbacks != null) {</b>
+<b class="nc">&nbsp;          for (RoomDatabase.Callback _callback : _callbacks) {</b>
+<b class="nc">&nbsp;            _callback.onCreate(db);</b>
+&nbsp;          }
+&nbsp;        }
+&nbsp;      }
+&nbsp;
+&nbsp;      @Override
+&nbsp;      public void onOpen(@NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;        mDatabase = db;</b>
+<b class="nc">&nbsp;        internalInitInvalidationTracker(db);</b>
+<b class="nc">&nbsp;        final List&lt;? extends RoomDatabase.Callback&gt; _callbacks = mCallbacks;</b>
+<b class="nc">&nbsp;        if (_callbacks != null) {</b>
+<b class="nc">&nbsp;          for (RoomDatabase.Callback _callback : _callbacks) {</b>
+<b class="nc">&nbsp;            _callback.onOpen(db);</b>
+&nbsp;          }
+&nbsp;        }
+&nbsp;      }
+&nbsp;
+&nbsp;      @Override
+&nbsp;      public void onPreMigrate(@NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;        DBUtil.dropFtsSyncTriggers(db);</b>
+&nbsp;      }
+&nbsp;
+&nbsp;      @Override
+&nbsp;      public void onPostMigrate(@NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;      }</b>
+&nbsp;
+&nbsp;      @Override
+&nbsp;      @NonNull
+&nbsp;      public RoomOpenHelper.ValidationResult onValidateSchema(
+&nbsp;          @NonNull final SupportSQLiteDatabase db) {
+<b class="nc">&nbsp;        final HashMap&lt;String, TableInfo.Column&gt; _columnsRegistrosOperacionales = new HashMap&lt;String, TableInfo.Column&gt;(18);</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;id&quot;, new TableInfo.Column(&quot;id&quot;, &quot;INTEGER&quot;, true, 1, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;codigoServicio&quot;, new TableInfo.Column(&quot;codigoServicio&quot;, &quot;TEXT&quot;, true, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;horaCheckIn&quot;, new TableInfo.Column(&quot;horaCheckIn&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;horaCheckOut&quot;, new TableInfo.Column(&quot;horaCheckOut&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;observaciones&quot;, new TableInfo.Column(&quot;observaciones&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;fechaRegistro&quot;, new TableInfo.Column(&quot;fechaRegistro&quot;, &quot;INTEGER&quot;, true, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;sincronizado&quot;, new TableInfo.Column(&quot;sincronizado&quot;, &quot;INTEGER&quot;, true, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;latitudCheckIn&quot;, new TableInfo.Column(&quot;latitudCheckIn&quot;, &quot;REAL&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;longitudCheckIn&quot;, new TableInfo.Column(&quot;longitudCheckIn&quot;, &quot;REAL&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;precisionCheckIn&quot;, new TableInfo.Column(&quot;precisionCheckIn&quot;, &quot;REAL&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;nombreLugarOrigen&quot;, new TableInfo.Column(&quot;nombreLugarOrigen&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;horaPickupProgramada&quot;, new TableInfo.Column(&quot;horaPickupProgramada&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;idempotencyKeyCheckIn&quot;, new TableInfo.Column(&quot;idempotencyKeyCheckIn&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;latitudCheckOut&quot;, new TableInfo.Column(&quot;latitudCheckOut&quot;, &quot;REAL&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;longitudCheckOut&quot;, new TableInfo.Column(&quot;longitudCheckOut&quot;, &quot;REAL&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;precisionCheckOut&quot;, new TableInfo.Column(&quot;precisionCheckOut&quot;, &quot;REAL&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;nombreLugarDestino&quot;, new TableInfo.Column(&quot;nombreLugarDestino&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        _columnsRegistrosOperacionales.put(&quot;idempotencyKeyCheckOut&quot;, new TableInfo.Column(&quot;idempotencyKeyCheckOut&quot;, &quot;TEXT&quot;, false, 0, null, TableInfo.CREATED_FROM_ENTITY));</b>
+<b class="nc">&nbsp;        final HashSet&lt;TableInfo.ForeignKey&gt; _foreignKeysRegistrosOperacionales = new HashSet&lt;TableInfo.ForeignKey&gt;(0);</b>
+<b class="nc">&nbsp;        final HashSet&lt;TableInfo.Index&gt; _indicesRegistrosOperacionales = new HashSet&lt;TableInfo.Index&gt;(0);</b>
+<b class="nc">&nbsp;        final TableInfo _infoRegistrosOperacionales = new TableInfo(&quot;registros_operacionales&quot;, _columnsRegistrosOperacionales, _foreignKeysRegistrosOperacionales, _indicesRegistrosOperacionales);</b>
+<b class="nc">&nbsp;        final TableInfo _existingRegistrosOperacionales = TableInfo.read(db, &quot;registros_operacionales&quot;);</b>
+<b class="nc">&nbsp;        if (!_infoRegistrosOperacionales.equals(_existingRegistrosOperacionales)) {</b>
+<b class="nc">&nbsp;          return new RoomOpenHelper.ValidationResult(false, &quot;registros_operacionales(com.example.proyectolince.data.RegistroOperacional).\n&quot;</b>
+&nbsp;                  + &quot; Expected:\n&quot; + _infoRegistrosOperacionales + &quot;\n&quot;
+&nbsp;                  + &quot; Found:\n&quot; + _existingRegistrosOperacionales);
+&nbsp;        }
+<b class="nc">&nbsp;        return new RoomOpenHelper.ValidationResult(true, null);</b>
+&nbsp;      }
+&nbsp;    }, &quot;d1c86e1d9f0b90d2ee59ea5ea9b2b2c5&quot;, &quot;1bc8ddcab9d2ce931362abd5fd9d5561&quot;);
+<b class="nc">&nbsp;    final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();</b>
+<b class="nc">&nbsp;    final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);</b>
+<b class="nc">&nbsp;    return _helper;</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  @Override
+&nbsp;  @NonNull
+&nbsp;  protected InvalidationTracker createInvalidationTracker() {
+<b class="nc">&nbsp;    final HashMap&lt;String, String&gt; _shadowTablesMap = new HashMap&lt;String, String&gt;(0);</b>
+<b class="nc">&nbsp;    final HashMap&lt;String, Set&lt;String&gt;&gt; _viewTables = new HashMap&lt;String, Set&lt;String&gt;&gt;(0);</b>
+<b class="nc">&nbsp;    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, &quot;registros_operacionales&quot;);</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  @Override
+&nbsp;  public void clearAllTables() {
+<b class="nc">&nbsp;    super.assertNotMainThread();</b>
+<b class="nc">&nbsp;    final SupportSQLiteDatabase _db = super.getOpenHelper().getWritableDatabase();</b>
+&nbsp;    try {
+<b class="nc">&nbsp;      super.beginTransaction();</b>
+<b class="nc">&nbsp;      _db.execSQL(&quot;DELETE FROM `registros_operacionales`&quot;);</b>
+<b class="nc">&nbsp;      super.setTransactionSuccessful();</b>
+&nbsp;    } finally {
+<b class="nc">&nbsp;      super.endTransaction();</b>
+<b class="nc">&nbsp;      _db.query(&quot;PRAGMA wal_checkpoint(FULL)&quot;).close();</b>
+<b class="nc">&nbsp;      if (!_db.inTransaction()) {</b>
+<b class="nc">&nbsp;        _db.execSQL(&quot;VACUUM&quot;);</b>
+&nbsp;      }
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  @Override
+&nbsp;  @NonNull
+&nbsp;  protected Map&lt;Class&lt;?&gt;, List&lt;Class&lt;?&gt;&gt;&gt; getRequiredTypeConverters() {
+<b class="nc">&nbsp;    final HashMap&lt;Class&lt;?&gt;, List&lt;Class&lt;?&gt;&gt;&gt; _typeConvertersMap = new HashMap&lt;Class&lt;?&gt;, List&lt;Class&lt;?&gt;&gt;&gt;();</b>
+<b class="nc">&nbsp;    _typeConvertersMap.put(RegistroDao.class, RegistroDao_Impl.getRequiredConverters());</b>
+<b class="nc">&nbsp;    return _typeConvertersMap;</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  @Override
+&nbsp;  @NonNull
+&nbsp;  public Set&lt;Class&lt;? extends AutoMigrationSpec&gt;&gt; getRequiredAutoMigrationSpecs() {
+<b class="nc">&nbsp;    final HashSet&lt;Class&lt;? extends AutoMigrationSpec&gt;&gt; _autoMigrationSpecsSet = new HashSet&lt;Class&lt;? extends AutoMigrationSpec&gt;&gt;();</b>
+<b class="nc">&nbsp;    return _autoMigrationSpecsSet;</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  @Override
+&nbsp;  @NonNull
+&nbsp;  public List&lt;Migration&gt; getAutoMigrations(
+&nbsp;      @NonNull final Map&lt;Class&lt;? extends AutoMigrationSpec&gt;, AutoMigrationSpec&gt; autoMigrationSpecs) {
+<b class="nc">&nbsp;    final List&lt;Migration&gt; _autoMigrations = new ArrayList&lt;Migration&gt;();</b>
+<b class="nc">&nbsp;    return _autoMigrations;</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  @Override
+&nbsp;  public RegistroDao registroDao() {
+<b class="nc">&nbsp;    if (_registroDao != null) {</b>
+<b class="nc">&nbsp;      return _registroDao;</b>
+&nbsp;    } else {
+<b class="nc">&nbsp;      synchronized(this) {</b>
+<b class="nc">&nbsp;        if(_registroDao == null) {</b>
+<b class="nc">&nbsp;          _registroDao = new RegistroDao_Impl(this);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return _registroDao;</b>
+<b class="nc">&nbsp;      }</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

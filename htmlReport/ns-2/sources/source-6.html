@@ -1,0 +1,293 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LocationHelper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data</a>
+</div>
+
+<h1>Coverage Summary for Class: LocationHelper (com.example.proyectolince.data)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LocationHelper</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    53,3%
+  </span>
+  <span class="absValue">
+    (8/15)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LocationHelper$obtenerUbicacionActual$2$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">LocationHelper$obtenerUbicacionActual$2$1$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">LocationHelper$obtenerUbicacionActual$2$1$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">LocationHelper$obtenerUbicacionActual$2$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">LocationHelper$sam$com_google_android_gms_tasks_OnSuccessListener$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    16,7%
+  </span>
+  <span class="absValue">
+    (1/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    27,6%
+  </span>
+  <span class="absValue">
+    (8/29)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data
+&nbsp;
+&nbsp;import android.annotation.SuppressLint
+&nbsp;import android.content.Context
+&nbsp;import android.location.Location
+&nbsp;import com.google.android.gms.location.LocationServices
+&nbsp;import com.google.android.gms.location.Priority
+&nbsp;import com.google.android.gms.tasks.CancellationTokenSource
+&nbsp;import kotlin.coroutines.resume
+&nbsp;import kotlin.coroutines.suspendCoroutine
+&nbsp;import kotlin.math.*
+&nbsp;
+&nbsp;data class GpsSnapshot(
+&nbsp;    val latitud: Double,
+&nbsp;    val longitud: Double,
+&nbsp;    val precisionMetros: Float
+&nbsp;)
+&nbsp;
+&nbsp;object LocationHelper {
+&nbsp;
+&nbsp;    @SuppressLint(&quot;MissingPermission&quot;)
+&nbsp;    suspend fun obtenerUbicacionActual(context: Context): GpsSnapshot? {
+<b class="nc">&nbsp;        val fusedClient = LocationServices.getFusedLocationProviderClient(context)</b>
+<b class="nc">&nbsp;        return suspendCoroutine { cont -&gt;</b>
+<b class="nc">&nbsp;            val cts = CancellationTokenSource()</b>
+<b class="nc">&nbsp;            fusedClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.token)</b>
+<b class="nc">&nbsp;                .addOnSuccessListener { location: Location? -&gt;</b>
+<b class="nc">&nbsp;                    if (location != null) {</b>
+<b class="nc">&nbsp;                        cont.resume(</b>
+<b class="nc">&nbsp;                            GpsSnapshot(</b>
+<b class="nc">&nbsp;                                latitud = location.latitude,</b>
+<b class="nc">&nbsp;                                longitud = location.longitude,</b>
+<b class="nc">&nbsp;                                precisionMetros = location.accuracy</b>
+&nbsp;                            )
+&nbsp;                        )
+&nbsp;                    } else {
+<b class="nc">&nbsp;                        fusedClient.lastLocation</b>
+<b class="nc">&nbsp;                            .addOnSuccessListener { last -&gt;</b>
+<b class="nc">&nbsp;                                if (last != null) {</b>
+<b class="nc">&nbsp;                                    cont.resume(GpsSnapshot(last.latitude, last.longitude, last.accuracy))</b>
+&nbsp;                                } else {
+<b class="nc">&nbsp;                                    cont.resume(null)</b>
+&nbsp;                                }
+&nbsp;                            }
+<b class="nc">&nbsp;                            .addOnFailureListener { cont.resume(null) }</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;                .addOnFailureListener {</b>
+<b class="nc">&nbsp;                    cont.resume(null)</b>
+&nbsp;                }
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun calcularDistanciaHaversineMetros(
+&nbsp;        lat1: Double, lon1: Double,
+&nbsp;        lat2: Double, lon2: Double
+&nbsp;    ): Double {
+<b class="fc">&nbsp;        val r = 6371000.0</b>
+<b class="fc">&nbsp;        val dLat = Math.toRadians(lat2 - lat1)</b>
+<b class="fc">&nbsp;        val dLon = Math.toRadians(lon2 - lon1)</b>
+<b class="fc">&nbsp;        val a = sin(dLat / 2).pow(2) +</b>
+<b class="fc">&nbsp;                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *</b>
+<b class="fc">&nbsp;                sin(dLon / 2).pow(2)</b>
+<b class="fc">&nbsp;        val c = 2 * atan2(sqrt(a), sqrt(1 - a))</b>
+<b class="fc">&nbsp;        return r * c</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

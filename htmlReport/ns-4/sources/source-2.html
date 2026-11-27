@@ -1,0 +1,114 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LinceBackendApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: LinceBackendApi (com.example.proyectolince.data.remote)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">LinceBackendApi$Subclass5</td>
+  </tr>
+  <tr>
+    <td class="name">LinceBackendApi$Subclass5$auxiliary$9FXh7xqi</td>
+  </tr>
+  <tr>
+    <td class="name">LinceBackendApi$Subclass5$auxiliary$H9UAvh3A</td>
+  </tr>
+  <tr>
+    <td class="name">LinceBackendApi$Subclass5$auxiliary$ixTfAVov</td>
+  </tr>
+  <tr>
+    <td class="name">LinceBackendApi$Subclass5$auxiliary$qDQoY61p</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.data.remote
+&nbsp;
+&nbsp;import com.example.proyectolince.data.remote.dto.*
+&nbsp;import retrofit2.Response
+&nbsp;import retrofit2.http.Body
+&nbsp;import retrofit2.http.GET
+&nbsp;import retrofit2.http.POST
+&nbsp;import retrofit2.http.Path
+&nbsp;
+&nbsp;interface LinceBackendApi {
+&nbsp;    @POST(&quot;api/auth/login&quot;)
+&nbsp;    suspend fun login(@Body request: LoginRequest): Response&lt;LoginResponse&gt;
+&nbsp;
+&nbsp;    @POST(&quot;api/operaciones/confirmaciones&quot;)
+&nbsp;    suspend fun confirmarServicio(@Body request: ConfirmacionRequest): Response&lt;Any&gt;
+&nbsp;
+&nbsp;    @GET(&quot;api/operaciones/confirmaciones&quot;)
+&nbsp;    suspend fun listarConfirmaciones(): Response&lt;List&lt;Any&gt;&gt;
+&nbsp;
+&nbsp;    @POST(&quot;api/operaciones/checkin-out&quot;)
+&nbsp;    suspend fun registrarCheckInOut(@Body request: CheckInOutRequest): Response&lt;Any&gt;
+&nbsp;
+&nbsp;    @GET(&quot;api/operaciones/checkin-out/{servicioId}/ultima-posicion&quot;)
+&nbsp;    suspend fun obtenerUltimaPosicion(@Path(&quot;servicioId&quot;) servicioId: Int): Response&lt;Any&gt;
+&nbsp;
+&nbsp;    @POST(&quot;api/disponibilidad&quot;)
+&nbsp;    suspend fun bloquearDisponibilidad(@Body request: DisponibilidadRequest): Response&lt;Any&gt;
+&nbsp;
+&nbsp;    @GET(&quot;api/disponibilidad&quot;)
+&nbsp;    suspend fun listarDisponibilidad(): Response&lt;List&lt;Any&gt;&gt;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>

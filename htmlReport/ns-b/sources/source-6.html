@@ -1,0 +1,212 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ServiciosUiState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.proyectolince.ui.viewmodel</a>
+</div>
+
+<h1>Coverage Summary for Class: ServiciosUiState (com.example.proyectolince.ui.viewmodel)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ServiciosUiState</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.proyectolince.ui.viewmodel
+&nbsp;
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import com.example.proyectolince.data.EstadoServicio
+&nbsp;import com.example.proyectolince.data.Servicio
+&nbsp;import com.example.proyectolince.data.SessionManager
+&nbsp;import com.example.proyectolince.data.TipoServicio
+&nbsp;import com.example.proyectolince.data.network.BackendRetrofitInstance
+&nbsp;import com.example.proyectolince.data.network.ConfirmacionBackendRequest
+&nbsp;import com.example.proyectolince.data.repository.LinceRepository
+&nbsp;import com.example.proyectolince.data.repository.ResultadoApi
+&nbsp;import com.example.proyectolince.data.toServicioUi
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.asStateFlow
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import java.util.UUID
+&nbsp;
+&nbsp;data class ServiciosUiState(
+<b class="fc">&nbsp;    val isLoading: Boolean = false,</b>
+<b class="fc">&nbsp;    val servicios: List&lt;Servicio&gt; = emptyList(),</b>
+<b class="fc">&nbsp;    val errorMessage: String? = null</b>
+&nbsp;)
+&nbsp;
+&nbsp;class ServiciosViewModel(
+&nbsp;    private val repository: LinceRepository = LinceRepository(),
+&nbsp;    private val sessionManager: SessionManager? = null
+&nbsp;) : ViewModel() {
+&nbsp;
+&nbsp;    private val _uiState = MutableStateFlow(ServiciosUiState(isLoading = true))
+&nbsp;    val uiState: StateFlow&lt;ServiciosUiState&gt; = _uiState.asStateFlow()
+&nbsp;
+&nbsp;    fun cargarServiciosPorRol(rolUsuario: String, idUsuario: String? = null) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+&nbsp;
+&nbsp;            when (val resultado = repository.obtenerServicios(page = 1, pageSize = 50)) {
+&nbsp;                is ResultadoApi.Exito -&gt; {
+&nbsp;                    val todos = resultado.datos.map { it.toServicioUi() }
+&nbsp;
+&nbsp;                    val filtradosPorRol = when (rolUsuario.uppercase().trim()) {
+&nbsp;                        &quot;DRIVER&quot;, &quot;TRANSPORTISTA&quot; -&gt; todos.filter { servicio -&gt;
+&nbsp;                            servicio.tipo == TipoServicio.TRANSFER ||
+&nbsp;                                    servicio.tipo == TipoServicio.EXCURSION
+&nbsp;                        }
+&nbsp;                        &quot;GUIA&quot; -&gt; todos.filter { servicio -&gt;
+&nbsp;                            servicio.tipo == TipoServicio.GUIADO ||
+&nbsp;                                    servicio.tipo == TipoServicio.EXCURSION
+&nbsp;                        }
+&nbsp;                        else -&gt; todos
+&nbsp;                    }
+&nbsp;
+&nbsp;                    _uiState.value = ServiciosUiState(
+&nbsp;                        isLoading = false,
+&nbsp;                        servicios = filtradosPorRol
+&nbsp;                    )
+&nbsp;                }
+&nbsp;                is ResultadoApi.Error -&gt; {
+&nbsp;                    _uiState.value = ServiciosUiState(
+&nbsp;                        isLoading = false,
+&nbsp;                        errorMessage = resultado.mensaje
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun actualizarEstadoLocal(
+&nbsp;        idServicio: String,
+&nbsp;        nuevoEstado: EstadoServicio,
+&nbsp;        motivo: String? = null,
+&nbsp;        sessionOverride: SessionManager? = sessionManager
+&nbsp;    ) {
+&nbsp;        val listaActualizada = _uiState.value.servicios.map { servicio -&gt;
+&nbsp;            if (servicio.id == idServicio) {
+&nbsp;                servicio.copy(estado = nuevoEstado, motivoRechazo = motivo)
+&nbsp;            } else {
+&nbsp;                servicio
+&nbsp;            }
+&nbsp;        }
+&nbsp;        _uiState.value = _uiState.value.copy(servicios = listaActualizada)
+&nbsp;
+&nbsp;        // Persistencia en microservicio Spring Boot propio (POST api/operaciones/confirmaciones)
+&nbsp;        val manager = sessionOverride ?: return
+&nbsp;        viewModelScope.launch {
+&nbsp;            try {
+&nbsp;                val bearer = manager.getBearerToken() ?: return@launch
+&nbsp;                val estadoStr = when (nuevoEstado) {
+&nbsp;                    EstadoServicio.CONFIRMADO -&gt; &quot;CONFIRMADO&quot;
+&nbsp;                    EstadoServicio.RECHAZADO -&gt; &quot;RECHAZADO&quot;
+&nbsp;                    else -&gt; nuevoEstado.name
+&nbsp;                }
+&nbsp;                BackendRetrofitInstance.api.registrarConfirmacion(
+&nbsp;                    bearerToken = bearer,
+&nbsp;                    request = ConfirmacionBackendRequest(
+&nbsp;                        idempotencyKey = &quot;CONF-${idServicio}-${UUID.randomUUID()}&quot;,
+&nbsp;                        servicioId = idServicio,
+&nbsp;                        estado = estadoStr,
+&nbsp;                        motivoRechazo = motivo
+&nbsp;                    )
+&nbsp;                )
+&nbsp;            } catch (_: Exception) {
+&nbsp;                // Si no hay conexión, el estado queda actualizado localmente
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-11-26 23:48</div>
+</div>
+</body>
+</html>
